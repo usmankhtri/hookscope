@@ -8,4 +8,4 @@ Disallow: /app/
 Disallow: /h/
 Disallow: /api/
 
-Sitemap: https://hookscope.vercel.app/sitemap.xml
+Sitemap: https://hookscope-tools.vercel.app/sitemap.xml

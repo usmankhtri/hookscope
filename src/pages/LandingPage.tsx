@@ -71,7 +71,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onCreateEndpoint }) =>
             <span className="w-2.5 h-2.5 rounded-full bg-neutral-300 dark:bg-neutral-700"></span>
             <span className="w-2.5 h-2.5 rounded-full bg-neutral-300 dark:bg-neutral-700"></span>
             <span className="ml-2 text-neutral-700 dark:text-neutral-300 font-semibold">
-              https://hookscope.vercel.app/h/demo-endpoint
+              https://hookscope-tools.vercel.app/h/demo-endpoint
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">

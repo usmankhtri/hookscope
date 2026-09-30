@@ -30,11 +30,11 @@ export function createExpressApp(): express.Application {
 
   // SEO: robots.txt and sitemap.xml fallback endpoints
   app.get('/robots.txt', (_req: Request, res: Response) => {
-    res.type('text/plain').send('User-agent: *\nAllow: /\nAllow: /docs\nAllow: /security\nAllow: /privacy\nAllow: /about\nDisallow: /app/\nDisallow: /h/\nDisallow: /api/\n\nSitemap: https://hookscope.vercel.app/sitemap.xml\n');
+    res.type('text/plain').send('User-agent: *\nAllow: /\nAllow: /docs\nAllow: /security\nAllow: /privacy\nAllow: /about\nDisallow: /app/\nDisallow: /h/\nDisallow: /api/\n\nSitemap: https://hookscope-tools.vercel.app/sitemap.xml\n');
   });
 
   app.get('/sitemap.xml', (_req: Request, res: Response) => {
-    res.type('application/xml').send('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>https://hookscope.vercel.app/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>\n  <url><loc>https://hookscope.vercel.app/docs</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>\n  <url><loc>https://hookscope.vercel.app/security</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>\n  <url><loc>https://hookscope.vercel.app/privacy</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>\n  <url><loc>https://hookscope.vercel.app/about</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>\n</urlset>');
+    res.type('application/xml').send('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>https://hookscope-tools.vercel.app/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>\n  <url><loc>https://hookscope-tools.vercel.app/docs</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>\n  <url><loc>https://hookscope-tools.vercel.app/security</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>\n  <url><loc>https://hookscope-tools.vercel.app/privacy</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>\n  <url><loc>https://hookscope-tools.vercel.app/about</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>\n</urlset>');
   });
 
   // Health and Storage Status

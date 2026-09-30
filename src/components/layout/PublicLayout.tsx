@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, Link, Outlet } from 'react-router-dom';
 import { ThemeToggle } from '../common/ThemeToggle';
 import { ArrowRight, Menu, X } from 'lucide-react';
+import { HookLabLogo } from '../brand/HookLabLogo';
 
 export const PublicLayout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -19,13 +20,8 @@ export const PublicLayout: React.FC = () => {
       <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-[#121214]/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
           {/* Brand */}
-          <Link to="/" className="flex items-center gap-2 group select-none">
-            <div className="w-6 h-6 rounded bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 flex items-center justify-center font-bold text-xs tracking-tighter shadow-2xs">
-              H
-            </div>
-            <span className="font-semibold text-sm tracking-tight text-neutral-900 dark:text-neutral-100 group-hover:text-neutral-600 dark:group-hover:text-neutral-300 transition-colors">
-              HookLab
-            </span>
+          <Link to="/" className="focus:outline-hidden">
+            <HookLabLogo />
           </Link>
 
           {/* Navigation Links */}

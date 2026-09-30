@@ -1,5 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" rx="7" fill="#18181b"/>
-  <path d="M10 9v14h3.5v-5h5v5H22V9h-3.5v5.5h-5V9H10z" fill="#ffffff"/>
-  <circle cx="25" cy="7" r="2.5" fill="#10b981"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#18181b" />
+      <stop offset="100%" stop-color="#09090b" />
+    </linearGradient>
+    <linearGradient id="hook-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#34d399" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#10b981" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect width="32" height="32" rx="7.5" fill="url(#bg-grad)" stroke="#27272a" stroke-width="1" />
+
+  <!-- Webhook Loop & Receiver Nodes -->
+  <g filter="url(#glow)">
+    <!-- Main Webhook Hook Loop -->
+    <path d="M10 20.5V11.5C10 9.57 11.57 8 13.5 8H17C18.93 8 20.5 9.57 20.5 11.5C20.5 13.43 18.93 15 17 15H12" 
+          stroke="url(#hook-grad)" 
+          stroke-width="2.5" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" />
+    
+    <!-- Base Receiving Terminal -->
+    <circle cx="10" cy="21.5" r="2" fill="#38bdf8" />
+    
+    <!-- Active Listening Signal Pulse -->
+    <circle cx="23.5" cy="8.5" r="2.2" fill="#10b981" />
+    <circle cx="23.5" cy="8.5" r="3.2" stroke="#10b981" stroke-width="0.8" opacity="0.6" />
+  </g>
 </svg>

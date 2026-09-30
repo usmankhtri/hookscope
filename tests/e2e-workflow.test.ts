@@ -355,15 +355,15 @@ describe('HookLab Full E2E Webhook Pipeline & Security Suite', () => {
     expect(data.error).toBe('INVALID_TOKEN');
   });
 
-  it('10. Serves SEO robots.txt and sitemap.xml with hookscope.vercel.app', async () => {
+  it('10. Serves SEO robots.txt and sitemap.xml with hookscope-tools.vercel.app', async () => {
     const robotsRes = await fetch(`${baseUrl}/robots.txt`);
     expect(robotsRes.status).toBe(200);
     const robotsTxt = await robotsRes.text();
-    expect(robotsTxt).toContain('hookscope.vercel.app');
+    expect(robotsTxt).toContain('hookscope-tools.vercel.app');
 
     const sitemapRes = await fetch(`${baseUrl}/sitemap.xml`);
     expect(sitemapRes.status).toBe(200);
     const sitemapXml = await sitemapRes.text();
-    expect(sitemapXml).toContain('https://hookscope.vercel.app/');
+    expect(sitemapXml).toContain('https://hookscope-tools.vercel.app/');
   });
 });

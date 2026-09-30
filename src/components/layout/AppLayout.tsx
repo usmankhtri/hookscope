@@ -4,6 +4,7 @@ import { ThemeToggle } from '../common/ThemeToggle';
 import { WebhookEndpoint, StorageStatus } from '../../types';
 import { getPublicEndpointUrl } from '../../utils/url';
 import { CopyButton } from '../common/CopyButton';
+import { HookLabLogo } from '../brand/HookLabLogo';
 import {
   ChevronDown,
   Plus,
@@ -64,13 +65,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         <div className="max-w-full px-3 sm:px-5 flex items-center justify-between h-13 gap-3">
           {/* Left: Brand + Contextual Endpoint Switcher */}
           <div className="flex items-center gap-3 min-w-0">
-            <Link to="/app" className="flex items-center gap-2 select-none group focus:outline-hidden">
-              <div className="w-6 h-6 rounded bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 flex items-center justify-center font-bold text-xs tracking-tighter shadow-2xs">
-                H
-              </div>
-              <span className="font-semibold text-sm tracking-tight text-neutral-900 dark:text-neutral-100 group-hover:text-neutral-600 dark:group-hover:text-neutral-300 transition-colors">
-                HookLab
-              </span>
+            <Link to="/app" className="focus:outline-hidden">
+              <HookLabLogo />
             </Link>
 
             <span className="text-neutral-300 dark:text-neutral-700 hidden sm:inline">/</span>
