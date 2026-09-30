@@ -6,6 +6,8 @@ import { RequestInbox } from '../components/history/RequestInbox';
 import { RequestInspector } from '../components/inspector/RequestInspector';
 import { getPublicEndpointUrl } from '../utils/url';
 import { CopyButton } from '../components/common/CopyButton';
+import { ConfirmDialog } from '../components/common/ConfirmDialog';
+import { useToast } from '../context/ToastContext';
 import { SIMULATED_PAYLOAD_TEMPLATES } from '../engine/templates/testPayloads';
 import {
   RotateCcw,
@@ -45,10 +47,15 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
     (activeEndpoint?.token === endpointToken ? activeEndpoint : null) ||
     activeEndpoint;
 
+  const { success, error: toastError } = useToast();
   const [events, setEvents] = useState<WebhookEvent[]>([]);
   const [totalEvents, setTotalEvents] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [workspaceMode, setWorkspaceMode] = useState<'stream' | 'mock-config' | 'test-sender'>('stream');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+  const [isDeletingEndpoint, setIsDeletingEndpoint] = useState(false);
 
   // Inline Mock Config Form State
   const [mockEnabled, setMockEnabled] = useState(false);
@@ -159,6 +166,7 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
     await ApiClient.deleteEvent(token, eventId);
     setEvents(prev => prev.filter(e => e.id !== eventId));
     setTotalEvents(prev => Math.max(0, prev - 1));
+    success('Request deleted');
     if (requestId === eventId) {
       navigate(`/app/endpoints/${token}`);
     }
@@ -166,24 +174,34 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
 
   const handleClearHistory = async () => {
     const currentToken = endpointToken || endpoint?.token;
-    if (!currentToken) return;
-    const confirmed = window.confirm('Clear all captured events for this endpoint?');
-    if (!confirmed) return;
+    if (!currentToken || isClearing) return;
+    setIsClearing(true);
 
-    await ApiClient.clearEvents(currentToken);
-    setEvents([]);
-    setTotalEvents(0);
-    navigate(`/app/endpoints/${currentToken}`);
+    try {
+      await ApiClient.clearEvents(currentToken);
+      setEvents([]);
+      setTotalEvents(0);
+      success('Request history cleared');
+      setShowClearConfirm(false);
+      navigate(`/app/endpoints/${currentToken}`);
+    } finally {
+      setIsClearing(false);
+    }
   };
 
   const handleDeleteEndpointConfirm = async () => {
     const currentToken = endpointToken || endpoint?.token;
-    if (!currentToken) return;
-    const confirmed = window.confirm(`Permanently delete endpoint /h/${currentToken}?`);
-    if (!confirmed) return;
+    if (!currentToken || isDeletingEndpoint) return;
+    setIsDeletingEndpoint(true);
 
-    await onDeleteEndpoint(currentToken);
-    navigate('/app/endpoints');
+    try {
+      await onDeleteEndpoint(currentToken);
+      success('Endpoint deleted');
+      setShowDeleteConfirm(false);
+      navigate('/app/endpoints');
+    } finally {
+      setIsDeletingEndpoint(false);
+    }
   };
 
   // Mock config save handler
@@ -208,9 +226,10 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
         },
       });
       setConfigSavedNotice(true);
+      success('Configuration saved');
       setTimeout(() => setConfigSavedNotice(false), 3000);
     } catch (err: any) {
-      alert(`Failed to save configuration: ${err.message}`);
+      toastError(`Failed to save configuration: ${err.message}`);
     } finally {
       setSavingConfig(false);
     }
@@ -297,40 +316,40 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-neutral-50 dark:bg-neutral-950 font-sans">
-      {/* Context Bar with Breadcrumb and Actions */}
-      <div className="bg-white dark:bg-[#141417] border-b border-neutral-200 dark:border-neutral-800 px-4 py-2.5 flex items-center justify-between flex-wrap gap-2 text-xs">
-        {/* Breadcrumb path */}
-        <div className="flex items-center gap-2 font-mono text-2xs text-neutral-500">
-          <Link to="/app/endpoints" className="hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
-            Endpoints
-          </Link>
-          <ChevronRight className="w-3 h-3 text-neutral-400" />
-          <span className="text-neutral-900 dark:text-neutral-100 font-semibold">
-            /h/{endpoint.token}
-          </span>
-          {requestId && (
-            <>
-              <ChevronRight className="w-3 h-3 text-neutral-400" />
-              <span className="text-neutral-600 dark:text-neutral-400">
-                {requestId.slice(-8)}
+      {/* Clean Endpoint Header */}
+      <div className="bg-white dark:bg-[#141417] border-b border-neutral-200 dark:border-neutral-800 px-4 py-3 flex items-center justify-between flex-wrap gap-3 text-xs">
+        {/* Left: Endpoint Name, Listening Badge, URL, and Copy */}
+        <div className="flex items-center gap-3 flex-wrap min-w-0">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                {endpoint.name || `Endpoint ${endpoint.token.slice(0, 6)}`}
+              </h1>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-3xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Listening
               </span>
-            </>
-          )}
+              <span className="text-2xs font-mono px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
+                /h/{endpoint.token}
+              </span>
+              {endpoint.mockResponse?.enabled && (
+                <span className="text-3xs font-mono px-2 py-0.5 rounded border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400">
+                  Mocking HTTP {endpoint.mockResponse.statusCode}
+                </span>
+              )}
+            </div>
 
-          <div className="ml-2 hidden sm:flex items-center gap-1.5">
-            <span className="text-neutral-400 select-all font-mono">{publicUrl}</span>
-            <CopyButton text={publicUrl} iconOnly />
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-2xs text-neutral-500 dark:text-neutral-400 select-all truncate">
+                {publicUrl}
+              </span>
+              <CopyButton text={publicUrl} label="Copy" iconOnly={false} className="py-0.5 px-2 text-2xs" />
+            </div>
           </div>
         </div>
 
         {/* Right Context Actions */}
         <div className="flex items-center gap-2">
-          {endpoint.mockResponse?.enabled && (
-            <span className="text-3xs font-mono px-2 py-0.5 rounded border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400">
-              Mocking HTTP {endpoint.mockResponse.statusCode}
-            </span>
-          )}
-
           <Link
             to={isReplayRoute ? `/app/endpoints/${endpoint.token}` : `/app/endpoints/${endpoint.token}/replay`}
             className={`inline-flex items-center gap-1 px-2.5 py-1 text-2xs rounded border transition-colors ${
@@ -346,9 +365,9 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
 
           <button
             type="button"
-            onClick={handleClearHistory}
+            onClick={() => setShowClearConfirm(true)}
             disabled={totalEvents === 0}
-            className="inline-flex items-center gap-1 px-2.5 py-1 text-2xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 rounded border border-neutral-200 dark:border-neutral-800 transition-colors disabled:opacity-40"
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-2xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 rounded border border-neutral-200 dark:border-neutral-800 transition-colors disabled:opacity-40 cursor-pointer"
             title="Clear all events for this endpoint"
           >
             <RotateCcw className="w-3 h-3" />
@@ -358,8 +377,8 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
           {endpoints.length > 1 && (
             <button
               type="button"
-              onClick={handleDeleteEndpointConfirm}
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-2xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded border border-neutral-200 dark:border-neutral-800 transition-colors"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-2xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded border border-neutral-200 dark:border-neutral-800 transition-colors cursor-pointer"
               title="Delete endpoint"
             >
               <Trash2 className="w-3 h-3" />
@@ -694,6 +713,29 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
           )}
         </div>
       </div>
+
+      {/* Accessible Confirmation Modals */}
+      <ConfirmDialog
+        isOpen={showClearConfirm}
+        title="Clear request history?"
+        message="All captured webhook requests stored for this endpoint will be permanently cleared."
+        confirmLabel={isClearing ? 'Clearing...' : 'Clear history'}
+        cancelLabel="Cancel"
+        isDestructive={true}
+        onConfirm={handleClearHistory}
+        onCancel={() => setShowClearConfirm(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Delete endpoint?"
+        message="Requests stored for this endpoint will also be removed according to the application's retention/storage behavior."
+        confirmLabel={isDeletingEndpoint ? 'Deleting...' : 'Delete endpoint'}
+        cancelLabel="Cancel"
+        isDestructive={true}
+        onConfirm={handleDeleteEndpointConfirm}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 };

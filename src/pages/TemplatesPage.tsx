@@ -6,6 +6,7 @@ import { CopyButton } from '../components/common/CopyButton';
 import { Layers, ArrowLeft, Send, CheckCircle2 } from 'lucide-react';
 import { WebhookEndpoint } from '../types';
 import { ApiClient } from '../engine/client/apiClient';
+import { useToast } from '../context/ToastContext';
 
 interface TemplatesPageProps {
   activeEndpoint: WebhookEndpoint | null;
@@ -17,6 +18,7 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
   onTemplateDispatched,
 }) => {
   const navigate = useNavigate();
+  const { warning, error: toastError, success } = useToast();
 
   useEffect(() => {
     document.title = 'Simulated Webhook Templates – HookLab';
@@ -27,7 +29,7 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
 
   const handleDispatch = async () => {
     if (!activeEndpoint) {
-      alert('Please select or create an active endpoint first.');
+      warning('Please select or create an active endpoint first.');
       return;
     }
     setSending(true);
@@ -42,12 +44,13 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
         selectedTemplate.body
       );
       setSendSuccess(true);
+      success('Template webhook dispatched');
       if (onTemplateDispatched) {
         onTemplateDispatched();
       }
       setTimeout(() => setSendSuccess(false), 3000);
     } catch (err: any) {
-      alert(`Failed to send simulated template: ${err.message}`);
+      toastError(`Failed to send simulated template: ${err.message}`);
     } finally {
       setSending(false);
     }

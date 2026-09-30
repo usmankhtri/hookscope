@@ -193,7 +193,7 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({
                     No requests yet
                   </h3>
                   <p className="text-2xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
-                    Send an HTTP request to your endpoint to see it here.
+                    Send an HTTP request to this endpoint to see it here.
                   </p>
                 </div>
 

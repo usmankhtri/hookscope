@@ -13,8 +13,11 @@ export interface SystemStatusResponse {
 }
 
 export class ApiClient {
-  static async getStatus(): Promise<SystemStatusResponse> {
+  static async getStatus(): Promise<SystemStatusResponse | null> {
     const res = await fetch('/api/status');
+    if (res.status === 304) {
+      return null;
+    }
     if (!res.ok) {
       throw new Error(`Failed to fetch status: ${res.statusText}`);
     }

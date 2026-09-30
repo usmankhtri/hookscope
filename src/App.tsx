@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { WebhookEndpoint, StorageStatus } from './types';
 import { ApiClient } from './engine/client/apiClient';
+import { ToastProvider, useToast } from './context/ToastContext';
 
 // Layouts
 import { PublicLayout } from './components/layout/PublicLayout';
@@ -22,6 +23,10 @@ import { DiffPage } from './pages/DiffPage';
 import { SignaturePage } from './pages/SignaturePage';
 import { TemplatesPage } from './pages/TemplatesPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+
+// Modals
+import { CreateEndpointModal } from './components/modals/CreateEndpointModal';
+import { EndpointSuccessModal } from './components/modals/EndpointSuccessModal';
 
 // Workspace Index redirector: takes user to first active endpoint or endpoints list
 function AppWorkspaceIndex({
@@ -47,11 +52,42 @@ function AppWorkspaceIndex({
   return <Navigate to="/app/endpoints" replace />;
 }
 
-export function App() {
+// Reconciles endpoint collections by unique token to prevent duplicate visual records
+function reconcileEndpoints(
+  prevList: WebhookEndpoint[],
+  incoming: WebhookEndpoint[]
+): WebhookEndpoint[] {
+  const map = new Map<string, WebhookEndpoint>();
+  for (const ep of prevList) {
+    if (ep?.token) map.set(ep.token, ep);
+  }
+  for (const ep of incoming) {
+    if (ep?.token) {
+      const existing = map.get(ep.token);
+      map.set(ep.token, { ...existing, ...ep });
+    }
+  }
+  return Array.from(map.values()).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
+function AppContent() {
+  const navigate = useNavigate();
+  const { error: toastError, success: toastSuccess } = useToast();
+
   const [endpoints, setEndpoints] = useState<WebhookEndpoint[]>([]);
   const [activeEndpointToken, setActiveEndpointToken] = useState<string | null>(null);
   const [storageStatus, setStorageStatus] = useState<StorageStatus | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Endpoint Creation Modals State
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [createdEndpoint, setCreatedEndpoint] = useState<WebhookEndpoint | null>(null);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+
+  // Strict double-submit guard across frontend
+  const isCreatingRef = useRef(false);
 
   const activeEndpoint =
     endpoints.find(e => e.token === activeEndpointToken) ||
@@ -66,12 +102,16 @@ export function App() {
         ApiClient.listEndpoints().catch(() => []),
       ]);
 
-      if (statusRes) {
+      if (statusRes?.storage) {
         setStorageStatus(statusRes.storage);
       }
-      setEndpoints(eps || []);
-      if (eps && eps.length > 0 && !activeEndpointToken) {
-        setActiveEndpointToken(eps[0].token);
+      if (eps && eps.length > 0) {
+        setEndpoints(prev => reconcileEndpoints(prev, eps));
+        if (!activeEndpointToken) {
+          setActiveEndpointToken(eps[0].token);
+        }
+      } else {
+        setEndpoints([]);
       }
     } catch (err) {
       console.error('Failed to load initial data:', err);
@@ -84,17 +124,54 @@ export function App() {
     loadInitialData();
   }, [loadInitialData]);
 
-  // Create new endpoint
-  const handleCreateEndpoint = async (): Promise<WebhookEndpoint> => {
+  // Open creation modal
+  const handleOpenCreateModal = useCallback(() => {
+    setCreateModalOpen(true);
+  }, []);
+
+  // Create endpoint with name (called strictly once from modal)
+  const handleCreateEndpointWithName = async (name: string): Promise<void> => {
+    if (isCreatingRef.current) return;
+    isCreatingRef.current = true;
+
     try {
-      const newEp = await ApiClient.createEndpoint();
-      setEndpoints(prev => [newEp, ...prev]);
+      const newEp = await ApiClient.createEndpoint(name.trim());
+
+      // Deduplicate into state
+      setEndpoints(prev => {
+        const map = new Map<string, WebhookEndpoint>();
+        map.set(newEp.token, newEp);
+        for (const ep of prev) {
+          if (ep?.token && !map.has(ep.token)) {
+            map.set(ep.token, ep);
+          }
+        }
+        return Array.from(map.values());
+      });
+
       setActiveEndpointToken(newEp.token);
-      return newEp;
+      setCreatedEndpoint(newEp);
+      setCreateModalOpen(false);
+      setSuccessModalOpen(true);
+      toastSuccess('Endpoint created');
     } catch (err: any) {
-      alert(`Could not create endpoint: ${err.message}`);
+      toastError(err.message || "Couldn't create endpoint. Check your connection and try again.");
       throw err;
+    } finally {
+      isCreatingRef.current = false;
     }
+  };
+
+  // Fallback programmatic create if triggered directly
+  const handleCreateEndpointFallback = async (): Promise<WebhookEndpoint | void> => {
+    handleOpenCreateModal();
+  };
+
+  // Transition from success modal to endpoint workspace
+  const handleOpenCreatedEndpoint = (token: string) => {
+    setSuccessModalOpen(false);
+    setActiveEndpointToken(token);
+    navigate(`/app/endpoints/${token}`);
   };
 
   // Update endpoint
@@ -114,11 +191,19 @@ export function App() {
   };
 
   return (
-    <BrowserRouter>
+    <>
       <Routes>
         {/* Public Routes with Marketing/Documentation Shell */}
         <Route element={<PublicLayout />}>
-          <Route index element={<LandingPage onCreateEndpoint={handleCreateEndpoint} />} />
+          <Route
+            index
+            element={
+              <LandingPage
+                onCreateEndpoint={handleCreateEndpointFallback}
+                onRequestCreateEndpoint={handleOpenCreateModal}
+              />
+            }
+          />
           <Route path="docs" element={<DocsPage />} />
           <Route path="security" element={<SecurityPage />} />
           <Route path="privacy" element={<PrivacyPage />} />
@@ -133,7 +218,8 @@ export function App() {
               endpoints={endpoints}
               activeEndpoint={activeEndpoint}
               storageStatus={storageStatus}
-              onCreateEndpoint={handleCreateEndpoint}
+              onCreateEndpoint={handleCreateEndpointFallback}
+              onRequestCreateEndpoint={handleOpenCreateModal}
               onDeleteEndpoint={handleDeleteEndpoint}
               onSelectEndpoint={setActiveEndpointToken}
             />
@@ -148,7 +234,7 @@ export function App() {
             element={
               <EndpointsPage
                 endpoints={endpoints}
-                onCreateEndpoint={handleCreateEndpoint}
+                onRequestCreateEndpoint={handleOpenCreateModal}
                 onDeleteEndpoint={handleDeleteEndpoint}
               />
             }
@@ -220,7 +306,32 @@ export function App() {
         {/* Global 404 Route */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
-    </BrowserRouter>
+
+      {/* In-App Endpoint Creation Modal */}
+      <CreateEndpointModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onCreate={handleCreateEndpointWithName}
+      />
+
+      {/* In-App Endpoint Created Success Panel */}
+      <EndpointSuccessModal
+        endpoint={createdEndpoint}
+        isOpen={successModalOpen}
+        onClose={() => setSuccessModalOpen(false)}
+        onOpenEndpoint={handleOpenCreatedEndpoint}
+      />
+    </>
+  );
+}
+
+export function App() {
+  return (
+    <ToastProvider>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </ToastProvider>
   );
 }
 

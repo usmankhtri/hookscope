@@ -1,9 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { NavLink, Link, Outlet, useNavigate, useLocation, useParams } from 'react-router-dom';
 import { ThemeToggle } from '../common/ThemeToggle';
 import { WebhookEndpoint, StorageStatus } from '../../types';
 import { getPublicEndpointUrl } from '../../utils/url';
 import { CopyButton } from '../common/CopyButton';
+import { ConfirmDialog } from '../common/ConfirmDialog';
 import { HookLabLogo } from '../brand/HookLabLogo';
 import {
   ChevronDown,
@@ -23,6 +24,7 @@ interface AppLayoutProps {
   activeEndpoint: WebhookEndpoint | null;
   storageStatus: StorageStatus | null;
   onCreateEndpoint: () => Promise<WebhookEndpoint | void>;
+  onRequestCreateEndpoint?: () => void;
   onDeleteEndpoint: (token: string) => Promise<void>;
   onSelectEndpoint: (token: string) => void;
 }
@@ -32,6 +34,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   activeEndpoint,
   storageStatus,
   onCreateEndpoint,
+  onRequestCreateEndpoint,
   onDeleteEndpoint,
   onSelectEndpoint,
 }) => {
@@ -39,7 +42,20 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [tokenToDelete, setTokenToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Deduplicate endpoints for dropdown
+  const uniqueEndpoints = useMemo(() => {
+    const map = new Map<string, WebhookEndpoint>();
+    for (const ep of endpoints) {
+      if (ep?.token) map.set(ep.token, ep);
+    }
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [endpoints]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -50,6 +66,17 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleConfirmDelete = async () => {
+    if (!tokenToDelete || isDeleting) return;
+    setIsDeleting(true);
+    try {
+      await onDeleteEndpoint(tokenToDelete);
+    } finally {
+      setIsDeleting(false);
+      setTokenToDelete(null);
+    }
+  };
 
   const activeUrl = activeEndpoint ? getPublicEndpointUrl(activeEndpoint.token) : '';
 
@@ -101,18 +128,21 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                   <div className="absolute left-0 top-full mt-1.5 w-72 sm:w-80 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#18181b] shadow-xl py-1.5 z-50 text-xs">
                     <div className="px-3 py-1.5 border-b border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between">
                       <span className="text-2xs font-mono uppercase text-neutral-400">
-                        Active Endpoints ({endpoints.length})
+                        Active Endpoints ({uniqueEndpoints.length})
                       </span>
                       <button
                         type="button"
-                        onClick={async () => {
+                        onClick={() => {
                           setDropdownOpen(false);
-                          const ep = await onCreateEndpoint();
-                          if (ep) {
-                            navigate(`/app/endpoints/${ep.token}`);
+                          if (onRequestCreateEndpoint) {
+                            onRequestCreateEndpoint();
+                          } else {
+                            onCreateEndpoint().then(ep => {
+                              if (ep) navigate(`/app/endpoints/${ep.token}`);
+                            });
                           }
                         }}
-                        className="inline-flex items-center gap-1 text-2xs font-medium text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white"
+                        className="inline-flex items-center gap-1 text-2xs font-medium text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
                       >
                         <Plus className="w-3 h-3" />
                         <span>Create New</span>
@@ -120,7 +150,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                     </div>
 
                     <div className="max-h-60 overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-800/60 py-1">
-                      {endpoints.map(ep => {
+                      {uniqueEndpoints.map(ep => {
                         const isCurrent = ep.token === activeEndpoint.token;
                         return (
                           <div
@@ -145,15 +175,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                               </span>
                             </div>
 
-                            {endpoints.length > 1 && (
+                            {uniqueEndpoints.length > 1 && (
                               <button
                                 type="button"
                                 onClick={e => {
                                   e.stopPropagation();
-                                  onDeleteEndpoint(ep.token);
+                                  setTokenToDelete(ep.token);
                                 }}
                                 className="p-1 text-neutral-400 hover:text-rose-500 rounded"
                                 title="Delete endpoint"
+                                aria-label={`Delete endpoint ${ep.name || ep.token}`}
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -320,6 +351,18 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           </Link>
         </div>
       </footer>
+
+      {/* Accessible In-App Delete Confirmation Modal */}
+      <ConfirmDialog
+        isOpen={tokenToDelete !== null}
+        title="Delete endpoint?"
+        message="Requests stored for this endpoint will also be removed according to the application's retention/storage behavior."
+        confirmLabel={isDeleting ? 'Deleting...' : 'Delete endpoint'}
+        cancelLabel="Cancel"
+        isDestructive={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setTokenToDelete(null)}
+      />
     </div>
   );
 };

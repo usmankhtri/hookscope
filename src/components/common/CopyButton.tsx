@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 
 interface CopyButtonProps {
   text: string;
@@ -17,12 +18,15 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
   iconOnly = false,
 }) => {
   const [copied, setCopied] = useState(false);
+  const { success } = useToast();
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
+      const isEndpointUrl = text.includes('/h/');
+      success(isEndpointUrl ? 'Endpoint URL copied' : 'Copied to clipboard');
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Fallback
@@ -35,6 +39,8 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
       document.execCommand('copy');
       document.body.removeChild(ta);
       setCopied(true);
+      const isEndpointUrl = text.includes('/h/');
+      success(isEndpointUrl ? 'Endpoint URL copied' : 'Copied to clipboard');
       setTimeout(() => setCopied(false), 2000);
     }
   };

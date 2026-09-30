@@ -7,9 +7,10 @@ import { WebhookEndpoint } from '../types';
 
 interface LandingPageProps {
   onCreateEndpoint: () => Promise<WebhookEndpoint | void>;
+  onRequestCreateEndpoint?: () => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onCreateEndpoint }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onCreateEndpoint, onRequestCreateEndpoint }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,6 +18,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onCreateEndpoint }) =>
   }, []);
 
   const handleCreateAndOpen = async () => {
+    if (onRequestCreateEndpoint) {
+      onRequestCreateEndpoint();
+      return;
+    }
     try {
       const ep = await ApiClient.createEndpoint();
       navigate(`/app/endpoints/${ep.token}`);
