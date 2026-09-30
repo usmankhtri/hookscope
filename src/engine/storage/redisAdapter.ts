@@ -76,7 +76,11 @@ export class RedisStorageAdapter implements WebhookStorageAdapter {
     return `hooklab:ev:${token}:${eventId}`;
   }
 
-  async createEndpoint(endpoint: WebhookEndpoint): Promise<WebhookEndpoint> {
+  private sessionKey(sessionId: string): string {
+    return `hooklab:sess:${sessionId}:endpoints`;
+  }
+
+  async createEndpoint(endpoint: WebhookEndpoint, sessionId?: string): Promise<WebhookEndpoint> {
     if (!this.client) throw new Error('Storage not configured');
     const ttlSeconds = (endpoint.retentionHours || DEFAULT_RETENTION_HOURS) * 3600;
 
@@ -84,6 +88,10 @@ export class RedisStorageAdapter implements WebhookStorageAdapter {
       ex: ttlSeconds,
     });
     await this.client.sadd('hooklab:endpoints', endpoint.token);
+    if (sessionId) {
+      await this.client.sadd(this.sessionKey(sessionId), endpoint.token);
+      await this.client.expire(this.sessionKey(sessionId), 30 * 86400); // 30-day session retention
+    }
     return endpoint;
   }
 
@@ -120,17 +128,29 @@ export class RedisStorageAdapter implements WebhookStorageAdapter {
     return updated;
   }
 
-  async deleteEndpoint(token: string): Promise<boolean> {
+  async deleteEndpoint(token: string, sessionId?: string): Promise<boolean> {
     if (!this.client) return false;
     await this.clearEvents(token);
     await this.client.del(this.epKey(token));
     await this.client.srem('hooklab:endpoints', token);
+    if (sessionId) {
+      await this.client.srem(this.sessionKey(sessionId), token);
+    }
     return true;
   }
 
-  async listEndpoints(): Promise<WebhookEndpoint[]> {
+  async listEndpoints(sessionId?: string): Promise<WebhookEndpoint[]> {
     if (!this.client) return [];
-    const tokens = await this.client.smembers('hooklab:endpoints');
+    
+    // Require session ID to isolate workspace endpoints.
+    // Without a session, return 0 endpoints so fresh users/cleared browsers never see stale data.
+    let tokens: string[] = [];
+    if (sessionId) {
+      tokens = (await this.client.smembers(this.sessionKey(sessionId))) || [];
+    } else {
+      return [];
+    }
+
     if (!tokens || tokens.length === 0) return [];
 
     const endpoints: WebhookEndpoint[] = [];
@@ -140,10 +160,22 @@ export class RedisStorageAdapter implements WebhookStorageAdapter {
         endpoints.push(ep);
       } else {
         // Expired or deleted
+        if (sessionId) {
+          await this.client.srem(this.sessionKey(sessionId), token);
+        }
         await this.client.srem('hooklab:endpoints', token);
       }
     }
-    return endpoints;
+    return endpoints.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async attachToSession(token: string, sessionId: string): Promise<void> {
+    if (!this.client || !sessionId) return;
+    const ep = await this.getEndpoint(token);
+    if (ep) {
+      await this.client.sadd(this.sessionKey(sessionId), token);
+      await this.client.expire(this.sessionKey(sessionId), 30 * 86400);
+    }
   }
 
   async saveEvent(event: WebhookEvent): Promise<void> {

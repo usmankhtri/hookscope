@@ -107,11 +107,12 @@ function AppContent() {
       }
       if (eps && eps.length > 0) {
         setEndpoints(prev => reconcileEndpoints(prev, eps));
-        if (!activeEndpointToken) {
+        if (!activeEndpointToken || !eps.some(e => e.token === activeEndpointToken)) {
           setActiveEndpointToken(eps[0].token);
         }
       } else {
         setEndpoints([]);
+        setActiveEndpointToken(null);
       }
     } catch (err) {
       console.error('Failed to load initial data:', err);

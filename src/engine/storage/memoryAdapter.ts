@@ -9,6 +9,7 @@ export class MemoryStorageAdapter implements WebhookStorageAdapter {
   readonly name = 'MemoryStorageAdapter';
   private endpoints = new Map<string, WebhookEndpoint>();
   private events = new Map<string, WebhookEvent[]>();
+  private sessionEndpoints = new Map<string, Set<string>>();
 
   isConfigured(): boolean {
     return true;
@@ -26,10 +27,18 @@ export class MemoryStorageAdapter implements WebhookStorageAdapter {
     };
   }
 
-  async createEndpoint(endpoint: WebhookEndpoint): Promise<WebhookEndpoint> {
+  async createEndpoint(endpoint: WebhookEndpoint, sessionId?: string): Promise<WebhookEndpoint> {
     this.endpoints.set(endpoint.token, { ...endpoint });
     if (!this.events.has(endpoint.token)) {
       this.events.set(endpoint.token, []);
+    }
+    if (sessionId) {
+      let set = this.sessionEndpoints.get(sessionId);
+      if (!set) {
+        set = new Set();
+        this.sessionEndpoints.set(sessionId, set);
+      }
+      set.add(endpoint.token);
     }
     return endpoint;
   }
@@ -47,14 +56,42 @@ export class MemoryStorageAdapter implements WebhookStorageAdapter {
     return { ...updated };
   }
 
-  async deleteEndpoint(token: string): Promise<boolean> {
+  async deleteEndpoint(token: string, sessionId?: string): Promise<boolean> {
     const deleted = this.endpoints.delete(token);
     this.events.delete(token);
+    if (sessionId) {
+      this.sessionEndpoints.get(sessionId)?.delete(token);
+    }
+    for (const set of this.sessionEndpoints.values()) {
+      set.delete(token);
+    }
     return deleted;
   }
 
-  async listEndpoints(): Promise<WebhookEndpoint[]> {
-    return Array.from(this.endpoints.values()).map(ep => ({ ...ep }));
+  async listEndpoints(sessionId?: string): Promise<WebhookEndpoint[]> {
+    if (sessionId) {
+      const set = this.sessionEndpoints.get(sessionId);
+      if (!set || set.size === 0) return [];
+      const list: WebhookEndpoint[] = [];
+      for (const token of set) {
+        const ep = this.endpoints.get(token);
+        if (ep) list.push({ ...ep });
+      }
+      return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+    return [];
+  }
+
+  async attachToSession(token: string, sessionId: string): Promise<void> {
+    if (!sessionId) return;
+    if (this.endpoints.has(token)) {
+      let set = this.sessionEndpoints.get(sessionId);
+      if (!set) {
+        set = new Set();
+        this.sessionEndpoints.set(sessionId, set);
+      }
+      set.add(token);
+    }
   }
 
   async saveEvent(event: WebhookEvent): Promise<void> {

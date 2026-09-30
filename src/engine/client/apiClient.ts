@@ -12,6 +12,43 @@ export interface SystemStatusResponse {
   };
 }
 
+function getClientSessionId(): string {
+  if (typeof window === 'undefined') return '';
+  const KEY = 'hooklab_session_id';
+  try {
+    let id = localStorage.getItem(KEY);
+    if (!id) {
+      const match = document.cookie.match(/(?:^|; )hl_session=([^;]*)/);
+      if (match && match[1]) {
+        id = decodeURIComponent(match[1]);
+      }
+    }
+    return id || '';
+  } catch {
+    return '';
+  }
+}
+
+function setClientSessionId(sessionId: string): void {
+  if (typeof window === 'undefined') return;
+  const KEY = 'hooklab_session_id';
+  try {
+    localStorage.setItem(KEY, sessionId);
+    document.cookie = `hl_session=${encodeURIComponent(sessionId)}; Path=/; Max-Age=2592000; SameSite=Lax`;
+  } catch {
+    // Ignore if cookies/localStorage are restricted
+  }
+}
+
+function getRequestHeaders(customHeaders: Record<string, string> = {}): Record<string, string> {
+  const headers: Record<string, string> = { ...customHeaders };
+  const session = getClientSessionId();
+  if (session) {
+    headers['x-hooklab-session'] = session;
+  }
+  return headers;
+}
+
 export class ApiClient {
   static async getStatus(): Promise<SystemStatusResponse | null> {
     const res = await fetch('/api/status');
@@ -25,7 +62,14 @@ export class ApiClient {
   }
 
   static async listEndpoints(): Promise<WebhookEndpoint[]> {
-    const res = await fetch('/api/endpoints');
+    const session = getClientSessionId();
+    if (!session) {
+      // Fresh user or user who cleared browser cookies / site data
+      return [];
+    }
+    const res = await fetch('/api/endpoints', {
+      headers: getRequestHeaders(),
+    });
     if (!res.ok) {
       throw new Error(`Failed to list endpoints: ${res.statusText}`);
     }
@@ -36,7 +80,7 @@ export class ApiClient {
   static async createEndpoint(name?: string): Promise<WebhookEndpoint> {
     const res = await fetch('/api/endpoints', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getRequestHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ name }),
     });
 
@@ -46,11 +90,16 @@ export class ApiClient {
     }
 
     const data = await res.json();
+    if (data.sessionId) {
+      setClientSessionId(data.sessionId);
+    }
     return data.endpoint;
   }
 
   static async getEndpoint(token: string): Promise<WebhookEndpoint> {
-    const res = await fetch(`/api/endpoints/${token}`);
+    const res = await fetch(`/api/endpoints/${token}`, {
+      headers: getRequestHeaders(),
+    });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || 'Endpoint not found');
@@ -62,7 +111,7 @@ export class ApiClient {
   static async updateEndpoint(token: string, updates: Partial<WebhookEndpoint>): Promise<WebhookEndpoint> {
     const res = await fetch(`/api/endpoints/${token}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getRequestHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(updates),
     });
 
@@ -78,6 +127,7 @@ export class ApiClient {
   static async deleteEndpoint(token: string): Promise<boolean> {
     const res = await fetch(`/api/endpoints/${token}`, {
       method: 'DELETE',
+      headers: getRequestHeaders(),
     });
     if (!res.ok) {
       throw new Error('Failed to delete endpoint');

@@ -17,6 +17,7 @@ var MemoryStorageAdapter = class {
     this.name = "MemoryStorageAdapter";
     this.endpoints = /* @__PURE__ */ new Map();
     this.events = /* @__PURE__ */ new Map();
+    this.sessionEndpoints = /* @__PURE__ */ new Map();
   }
   isConfigured() {
     return true;
@@ -32,10 +33,18 @@ var MemoryStorageAdapter = class {
       maxBodySizeBytes: MAX_BODY_SIZE_BYTES
     };
   }
-  async createEndpoint(endpoint) {
+  async createEndpoint(endpoint, sessionId) {
     this.endpoints.set(endpoint.token, { ...endpoint });
     if (!this.events.has(endpoint.token)) {
       this.events.set(endpoint.token, []);
+    }
+    if (sessionId) {
+      let set = this.sessionEndpoints.get(sessionId);
+      if (!set) {
+        set = /* @__PURE__ */ new Set();
+        this.sessionEndpoints.set(sessionId, set);
+      }
+      set.add(endpoint.token);
     }
     return endpoint;
   }
@@ -50,13 +59,40 @@ var MemoryStorageAdapter = class {
     this.endpoints.set(token, updated);
     return { ...updated };
   }
-  async deleteEndpoint(token) {
+  async deleteEndpoint(token, sessionId) {
     const deleted = this.endpoints.delete(token);
     this.events.delete(token);
+    if (sessionId) {
+      this.sessionEndpoints.get(sessionId)?.delete(token);
+    }
+    for (const set of this.sessionEndpoints.values()) {
+      set.delete(token);
+    }
     return deleted;
   }
-  async listEndpoints() {
-    return Array.from(this.endpoints.values()).map((ep) => ({ ...ep }));
+  async listEndpoints(sessionId) {
+    if (sessionId) {
+      const set = this.sessionEndpoints.get(sessionId);
+      if (!set || set.size === 0) return [];
+      const list = [];
+      for (const token of set) {
+        const ep = this.endpoints.get(token);
+        if (ep) list.push({ ...ep });
+      }
+      return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+    return [];
+  }
+  async attachToSession(token, sessionId) {
+    if (!sessionId) return;
+    if (this.endpoints.has(token)) {
+      let set = this.sessionEndpoints.get(sessionId);
+      if (!set) {
+        set = /* @__PURE__ */ new Set();
+        this.sessionEndpoints.set(sessionId, set);
+      }
+      set.add(token);
+    }
   }
   async saveEvent(event) {
     let list = this.events.get(event.endpointToken);
@@ -166,13 +202,20 @@ var RedisStorageAdapter = class {
   eventKey(token, eventId) {
     return `hooklab:ev:${token}:${eventId}`;
   }
-  async createEndpoint(endpoint) {
+  sessionKey(sessionId) {
+    return `hooklab:sess:${sessionId}:endpoints`;
+  }
+  async createEndpoint(endpoint, sessionId) {
     if (!this.client) throw new Error("Storage not configured");
     const ttlSeconds = (endpoint.retentionHours || DEFAULT_RETENTION_HOURS2) * 3600;
     await this.client.set(this.epKey(endpoint.token), JSON.stringify(endpoint), {
       ex: ttlSeconds
     });
     await this.client.sadd("hooklab:endpoints", endpoint.token);
+    if (sessionId) {
+      await this.client.sadd(this.sessionKey(sessionId), endpoint.token);
+      await this.client.expire(this.sessionKey(sessionId), 30 * 86400);
+    }
     return endpoint;
   }
   async getEndpoint(token) {
@@ -204,16 +247,24 @@ var RedisStorageAdapter = class {
     });
     return updated;
   }
-  async deleteEndpoint(token) {
+  async deleteEndpoint(token, sessionId) {
     if (!this.client) return false;
     await this.clearEvents(token);
     await this.client.del(this.epKey(token));
     await this.client.srem("hooklab:endpoints", token);
+    if (sessionId) {
+      await this.client.srem(this.sessionKey(sessionId), token);
+    }
     return true;
   }
-  async listEndpoints() {
+  async listEndpoints(sessionId) {
     if (!this.client) return [];
-    const tokens = await this.client.smembers("hooklab:endpoints");
+    let tokens = [];
+    if (sessionId) {
+      tokens = await this.client.smembers(this.sessionKey(sessionId)) || [];
+    } else {
+      return [];
+    }
     if (!tokens || tokens.length === 0) return [];
     const endpoints = [];
     for (const token of tokens) {
@@ -221,10 +272,21 @@ var RedisStorageAdapter = class {
       if (ep) {
         endpoints.push(ep);
       } else {
+        if (sessionId) {
+          await this.client.srem(this.sessionKey(sessionId), token);
+        }
         await this.client.srem("hooklab:endpoints", token);
       }
     }
-    return endpoints;
+    return endpoints.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+  async attachToSession(token, sessionId) {
+    if (!this.client || !sessionId) return;
+    const ep = await this.getEndpoint(token);
+    if (ep) {
+      await this.client.sadd(this.sessionKey(sessionId), token);
+      await this.client.expire(this.sessionKey(sessionId), 30 * 86400);
+    }
   }
   async saveEvent(event) {
     if (!this.client) throw new Error("Storage not configured");
@@ -354,14 +416,18 @@ var StorageManager = class _StorageManager {
   }
   static getAdapter() {
     if (!_StorageManager.instance) {
-      const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_URL || process.env.REDIS_URL;
-      const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_REST_TOKEN || process.env.REDIS_TOKEN;
-      if (redisUrl && redisToken) {
-        _StorageManager.instance = new RedisStorageAdapter();
-      } else if (process.env.ALLOW_EPHEMERAL_DEV_STORAGE === "true" || process.env.NODE_ENV === "development" || !process.env.NODE_ENV) {
+      if (process.env.NODE_ENV === "test") {
         _StorageManager.instance = new MemoryStorageAdapter();
       } else {
-        _StorageManager.instance = new UnconfiguredStorageAdapter();
+        const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_URL || process.env.REDIS_URL;
+        const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_REST_TOKEN || process.env.REDIS_TOKEN;
+        if (redisUrl && redisToken) {
+          _StorageManager.instance = new RedisStorageAdapter();
+        } else if (process.env.ALLOW_EPHEMERAL_DEV_STORAGE === "true" || process.env.NODE_ENV === "development" || !process.env.NODE_ENV) {
+          _StorageManager.instance = new MemoryStorageAdapter();
+        } else {
+          _StorageManager.instance = new UnconfiguredStorageAdapter();
+        }
       }
     }
     return _StorageManager.instance;
@@ -702,6 +768,34 @@ var globalRateLimiter = new MemoryRateLimiter(
 // src/server/createApp.ts
 var MAX_BODY_SIZE_BYTES3 = 512 * 1024;
 var MAX_REPLAY_RESPONSE_SIZE = 256 * 1024;
+function parseCookies(req) {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) return {};
+  const cookies = {};
+  for (const pair of cookieHeader.split(";")) {
+    const idx = pair.indexOf("=");
+    if (idx > 0) {
+      const key = pair.slice(0, idx).trim();
+      const val = pair.slice(idx + 1).trim();
+      cookies[key] = decodeURIComponent(val);
+    }
+  }
+  return cookies;
+}
+function getSessionId(req) {
+  const fromHeader = req.headers["x-hooklab-session"];
+  if (fromHeader && fromHeader.trim().length >= 8) {
+    return fromHeader.trim();
+  }
+  const cookies = parseCookies(req);
+  if (cookies.hl_session && cookies.hl_session.trim().length >= 8) {
+    return cookies.hl_session.trim();
+  }
+  return void 0;
+}
+function generateSessionId() {
+  return `sess_${generateEndpointToken(18)}`;
+}
 function createExpressApp() {
   const app2 = express();
   app2.use((req, res, next) => {
@@ -744,6 +838,11 @@ function createExpressApp() {
           message: status.message
         });
       }
+      let sessionId = getSessionId(req);
+      if (!sessionId) {
+        sessionId = generateSessionId();
+      }
+      res.setHeader("Set-Cookie", `hl_session=${encodeURIComponent(sessionId)}; Path=/; Max-Age=2592000; SameSite=Lax`);
       const token = generateEndpointToken(14);
       const endpoint = {
         id: `ep_${token}`,
@@ -762,8 +861,8 @@ function createExpressApp() {
           headers: {}
         }
       };
-      const created = await storage.createEndpoint(endpoint);
-      return res.status(201).json({ endpoint: created });
+      const created = await storage.createEndpoint(endpoint, sessionId);
+      return res.status(201).json({ endpoint: created, sessionId });
     } catch (err) {
       return res.status(500).json({ error: "FAILED_TO_CREATE_ENDPOINT", message: err.message });
     }
@@ -771,7 +870,11 @@ function createExpressApp() {
   app2.get("/api/endpoints", async (req, res) => {
     try {
       const storage = StorageManager.getAdapter();
-      const endpoints = await storage.listEndpoints();
+      const sessionId = getSessionId(req);
+      if (!sessionId) {
+        return res.json({ endpoints: [] });
+      }
+      const endpoints = await storage.listEndpoints(sessionId);
       return res.json({ endpoints });
     } catch (err) {
       return res.status(500).json({ error: "FAILED_TO_LIST_ENDPOINTS", message: err.message });
@@ -787,6 +890,10 @@ function createExpressApp() {
       const endpoint = await storage.getEndpoint(token);
       if (!endpoint) {
         return res.status(404).json({ error: "ENDPOINT_NOT_FOUND", message: "Endpoint not found or expired" });
+      }
+      const sessionId = getSessionId(req);
+      if (sessionId && storage.attachToSession) {
+        await storage.attachToSession(token, sessionId);
       }
       return res.json({ endpoint });
     } catch (err) {
@@ -816,7 +923,8 @@ function createExpressApp() {
     }
     try {
       const storage = StorageManager.getAdapter();
-      const success = await storage.deleteEndpoint(token);
+      const sessionId = getSessionId(req);
+      const success = await storage.deleteEndpoint(token, sessionId);
       return res.json({ success });
     } catch (err) {
       return res.status(500).json({ error: "STORAGE_ERROR", message: err.message });

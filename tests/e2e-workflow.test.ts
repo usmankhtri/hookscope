@@ -2,13 +2,16 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import http from 'http';
 import { AddressInfo } from 'net';
 import { createExpressApp } from '../src/server/createApp';
+import { StorageManager } from '../src/engine/storage/storageManager';
+import { MemoryStorageAdapter } from '../src/engine/storage/memoryAdapter';
 
 describe('HookLab Full E2E Webhook Pipeline & Security Suite', () => {
   let server: http.Server;
   let baseUrl: string;
 
   beforeAll(async () => {
-    process.env.NODE_ENV = 'development';
+    process.env.NODE_ENV = 'test';
+    StorageManager.setAdapterForTesting(new MemoryStorageAdapter());
     const app = createExpressApp();
     server = http.createServer(app);
 
@@ -22,6 +25,7 @@ describe('HookLab Full E2E Webhook Pipeline & Security Suite', () => {
   });
 
   afterAll(async () => {
+    StorageManager.setAdapterForTesting(null);
     await new Promise<void>((resolve) => {
       server.close(() => resolve());
     });
@@ -365,5 +369,59 @@ describe('HookLab Full E2E Webhook Pipeline & Security Suite', () => {
     expect(sitemapRes.status).toBe(200);
     const sitemapXml = await sitemapRes.text();
     expect(sitemapXml).toContain('https://hookscope-tools.vercel.app/');
+  });
+
+  it('11. Workspace session isolation: fresh user sees 0, created endpoint yields exactly 1, cleared session yields 0', async () => {
+    // 1. Fresh user without session header sees 0 endpoints
+    const freshRes = await fetch(`${baseUrl}/api/endpoints`);
+    expect(freshRes.status).toBe(200);
+    const freshData = await freshRes.json();
+    expect(freshData.endpoints).toHaveLength(0);
+
+    // 2. User creates an endpoint with their session
+    const testSession = 'sess_test_alpha_user_99';
+    const createRes = await fetch(`${baseUrl}/api/endpoints`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-hooklab-session': testSession,
+      },
+      body: JSON.stringify({ name: 'User Private Stripe Webhook' }),
+    });
+    expect(createRes.status).toBe(201);
+    const createData = await createRes.json();
+    const createdToken = createData.endpoint.token;
+
+    // 3. User lists endpoints with their session -> exactly 1 endpoint
+    const listRes = await fetch(`${baseUrl}/api/endpoints`, {
+      headers: { 'x-hooklab-session': testSession },
+    });
+    expect(listRes.status).toBe(200);
+    const listData = await listRes.json();
+    expect(listData.endpoints).toHaveLength(1);
+    expect(listData.endpoints[0].token).toBe(createdToken);
+    expect(listData.endpoints[0].name).toBe('User Private Stripe Webhook');
+
+    // 4. Another user / fresh user after clearing browser data (new session or no session) -> sees 0 endpoints
+    const anotherSession = 'sess_fresh_browser_after_clear_123';
+    const anotherListRes = await fetch(`${baseUrl}/api/endpoints`, {
+      headers: { 'x-hooklab-session': anotherSession },
+    });
+    expect(anotherListRes.status).toBe(200);
+    const anotherListData = await anotherListRes.json();
+    expect(anotherListData.endpoints).toHaveLength(0);
+
+    // 5. Deleting the endpoint removes it from the user session
+    const delRes = await fetch(`${baseUrl}/api/endpoints/${createdToken}`, {
+      method: 'DELETE',
+      headers: { 'x-hooklab-session': testSession },
+    });
+    expect(delRes.status).toBe(200);
+
+    const postDelList = await fetch(`${baseUrl}/api/endpoints`, {
+      headers: { 'x-hooklab-session': testSession },
+    });
+    const postDelData = await postDelList.json();
+    expect(postDelData.endpoints).toHaveLength(0);
   });
 });

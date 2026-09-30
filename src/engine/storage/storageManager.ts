@@ -68,16 +68,20 @@ class StorageManager {
 
   static getAdapter(): WebhookStorageAdapter {
     if (!StorageManager.instance) {
-      const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_URL || process.env.REDIS_URL;
-      const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_REST_TOKEN || process.env.REDIS_TOKEN;
-
-      if (redisUrl && redisToken) {
-        StorageManager.instance = new RedisStorageAdapter();
-      } else if (process.env.ALLOW_EPHEMERAL_DEV_STORAGE === 'true' || process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
-        // In local development or testing, fallback to in-memory adapter but honestly report isDurable: false
+      if (process.env.NODE_ENV === 'test') {
         StorageManager.instance = new MemoryStorageAdapter();
       } else {
-        StorageManager.instance = new UnconfiguredStorageAdapter();
+        const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_URL || process.env.REDIS_URL;
+        const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_REST_TOKEN || process.env.REDIS_TOKEN;
+
+        if (redisUrl && redisToken) {
+          StorageManager.instance = new RedisStorageAdapter();
+        } else if (process.env.ALLOW_EPHEMERAL_DEV_STORAGE === 'true' || process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+          // In local development or testing, fallback to in-memory adapter but honestly report isDurable: false
+          StorageManager.instance = new MemoryStorageAdapter();
+        } else {
+          StorageManager.instance = new UnconfiguredStorageAdapter();
+        }
       }
     }
     return StorageManager.instance;

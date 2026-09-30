@@ -9,6 +9,37 @@ import { HttpMethod, WebhookEndpoint, WebhookEvent, ReplayRequest, ReplayRespons
 const MAX_BODY_SIZE_BYTES = 512 * 1024; // 512 KB
 const MAX_REPLAY_RESPONSE_SIZE = 256 * 1024; // 256 KB
 
+function parseCookies(req: Request): Record<string, string> {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) return {};
+  const cookies: Record<string, string> = {};
+  for (const pair of cookieHeader.split(';')) {
+    const idx = pair.indexOf('=');
+    if (idx > 0) {
+      const key = pair.slice(0, idx).trim();
+      const val = pair.slice(idx + 1).trim();
+      cookies[key] = decodeURIComponent(val);
+    }
+  }
+  return cookies;
+}
+
+function getSessionId(req: Request): string | undefined {
+  const fromHeader = req.headers['x-hooklab-session'] as string | undefined;
+  if (fromHeader && fromHeader.trim().length >= 8) {
+    return fromHeader.trim();
+  }
+  const cookies = parseCookies(req);
+  if (cookies.hl_session && cookies.hl_session.trim().length >= 8) {
+    return cookies.hl_session.trim();
+  }
+  return undefined;
+}
+
+function generateSessionId(): string {
+  return `sess_${generateEndpointToken(18)}`;
+}
+
 export function createExpressApp(): express.Application {
   const app = express();
 
@@ -65,6 +96,14 @@ export function createExpressApp(): express.Application {
         });
       }
 
+      let sessionId = getSessionId(req);
+      if (!sessionId) {
+        sessionId = generateSessionId();
+      }
+
+      // Keep cookie refreshed for 30 days
+      res.setHeader('Set-Cookie', `hl_session=${encodeURIComponent(sessionId)}; Path=/; Max-Age=2592000; SameSite=Lax`);
+
       const token = generateEndpointToken(14);
       const endpoint: WebhookEndpoint = {
         id: `ep_${token}`,
@@ -84,8 +123,8 @@ export function createExpressApp(): express.Application {
         },
       };
 
-      const created = await storage.createEndpoint(endpoint);
-      return res.status(201).json({ endpoint: created });
+      const created = await storage.createEndpoint(endpoint, sessionId);
+      return res.status(201).json({ endpoint: created, sessionId });
     } catch (err: any) {
       return res.status(500).json({ error: 'FAILED_TO_CREATE_ENDPOINT', message: err.message });
     }
@@ -94,7 +133,12 @@ export function createExpressApp(): express.Application {
   app.get('/api/endpoints', async (req: Request, res: Response) => {
     try {
       const storage = StorageManager.getAdapter();
-      const endpoints = await storage.listEndpoints();
+      const sessionId = getSessionId(req);
+      if (!sessionId) {
+        // Fresh user or user who cleared browser cookies / site data
+        return res.json({ endpoints: [] });
+      }
+      const endpoints = await storage.listEndpoints(sessionId);
       return res.json({ endpoints });
     } catch (err: any) {
       return res.status(500).json({ error: 'FAILED_TO_LIST_ENDPOINTS', message: err.message });
@@ -113,6 +157,13 @@ export function createExpressApp(): express.Application {
       if (!endpoint) {
         return res.status(404).json({ error: 'ENDPOINT_NOT_FOUND', message: 'Endpoint not found or expired' });
       }
+
+      // If user accesses an endpoint directly, attach to their session so it appears in their workspace
+      const sessionId = getSessionId(req);
+      if (sessionId && storage.attachToSession) {
+        await storage.attachToSession(token, sessionId);
+      }
+
       return res.json({ endpoint });
     } catch (err: any) {
       return res.status(500).json({ error: 'STORAGE_ERROR', message: err.message });
@@ -145,7 +196,8 @@ export function createExpressApp(): express.Application {
 
     try {
       const storage = StorageManager.getAdapter();
-      const success = await storage.deleteEndpoint(token);
+      const sessionId = getSessionId(req);
+      const success = await storage.deleteEndpoint(token, sessionId);
       return res.json({ success });
     } catch (err: any) {
       return res.status(500).json({ error: 'STORAGE_ERROR', message: err.message });
