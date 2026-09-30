@@ -60,13 +60,11 @@ export const HookLabIcon: React.FC<HookLabIconProps> = ({ className = '', size =
 interface HookLabLogoProps {
   className?: string;
   iconSize?: 'sm' | 'md';
-  showBadge?: boolean;
 }
 
 export const HookLabLogo: React.FC<HookLabLogoProps> = ({
   className = '',
   iconSize = 'sm',
-  showBadge = false,
 }) => {
   return (
     <div className={`flex items-center gap-2 group select-none ${className}`}>
@@ -74,11 +72,6 @@ export const HookLabLogo: React.FC<HookLabLogoProps> = ({
       <span className="font-semibold text-sm tracking-tight text-neutral-900 dark:text-neutral-100 group-hover:text-neutral-700 dark:group-hover:text-neutral-300 transition-colors">
         Hook<span className="text-emerald-600 dark:text-emerald-400">Lab</span>
       </span>
-      {showBadge && (
-        <span className="hidden sm:inline-block px-1.5 py-0.5 text-3xs font-mono font-medium rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700">
-          PROD
-        </span>
-      )}
     </div>
   );
 };

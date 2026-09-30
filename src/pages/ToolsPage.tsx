@@ -23,7 +23,7 @@ export const ToolsPage: React.FC = () => {
     },
     {
       title: 'Simulated Webhook Templates',
-      description: 'Browse realistic sample webhook events for Stripe, GitHub, Shopify, Slack, and Discord, and dispatch them to test endpoints.',
+      description: 'Browse realistic webhook event payloads for Stripe, GitHub, Shopify, Slack, and Discord, and dispatch them to active endpoints.',
       path: '/app/tools/templates',
       icon: Layers,
       badge: 'Templates',

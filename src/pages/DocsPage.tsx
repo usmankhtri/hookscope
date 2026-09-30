@@ -19,7 +19,7 @@ export const DocsPage: React.FC = () => {
           HookLab Documentation
         </h1>
         <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed max-w-2xl">
-          Technical specifications for public endpoint ingestion, safe request inspection, mock response generation, SSRF-restricted replay, and Vercel serverless deployment.
+          Technical specifications for public endpoint ingestion, safe request inspection, custom response rules, SSRF-restricted replay, and Vercel serverless deployment.
         </p>
       </div>
 
@@ -47,7 +47,7 @@ export const DocsPage: React.FC = () => {
           2. Webhook Replay & SSRF Security
         </h2>
         <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-          The Replay engine lets you resend captured requests to a local ngrok/localtunnel address, a staging API, or another webhook receiver. To prevent HookLab from acting as an open proxy into private clouds or internal networks, every destination URL undergoes Server-Side Request Forgery (SSRF) validation before execution:
+          The Replay engine lets you resend captured requests to a destination API, tunnel address, or secondary webhook receiver. To prevent HookLab from acting as an open proxy into private clouds or internal networks, every destination URL undergoes Server-Side Request Forgery (SSRF) validation before execution:
         </p>
         <ul className="list-disc list-inside text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 space-y-1 pl-2">
           <li>Blocks loopback and localhost addresses (127.0.0.1, ::1, 0.0.0.0)</li>
@@ -57,14 +57,14 @@ export const DocsPage: React.FC = () => {
         </ul>
       </section>
 
-      {/* Section 3: Mock Response Testing */}
+      {/* Section 3: Custom Response Configuration */}
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
           <Terminal className="w-4 h-4 text-neutral-500" />
-          3. Mock Response Testing
+          3. Custom Response Configuration
         </h2>
         <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-          Test how webhook senders behave when your server returns errors or experiences latency. You can configure any HookLab endpoint to respond with:
+          Test how webhook providers behave when your receiver returns non-200 status codes or experiences latency. You can configure any HookLab endpoint to respond with:
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
           <div className="p-2 border border-neutral-200 dark:border-neutral-800 rounded bg-white dark:bg-[#121214] text-center">200 OK</div>

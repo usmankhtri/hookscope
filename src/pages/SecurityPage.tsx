@@ -27,13 +27,13 @@ export const SecurityPage: React.FC = () => {
         <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
         <div className="text-xs space-y-1">
           <p className="font-semibold text-amber-900 dark:text-amber-200">
-            Developer Environment Notice
+            Security & Data Handling Advisory
           </p>
           <p className="text-amber-800 dark:text-amber-300 leading-relaxed font-medium">
-            Do not send production secrets or sensitive customer data to a testing endpoint.
+            Do not send private production secrets, encryption keys, or sensitive customer credentials to public inspection endpoints.
           </p>
           <p className="text-amber-700 dark:text-amber-400 leading-relaxed">
-            HookLab is designed for staging, sandbox validation, local webhook testing, and integration inspection. Always utilize sanitized test payloads or test accounts when validating webhooks.
+            HookLab is designed for webhook verification, integration inspection, and payload debugging. Always utilize test webhooks, sandbox accounts, or sanitized payloads when validating integrations.
           </p>
         </div>
       </div>

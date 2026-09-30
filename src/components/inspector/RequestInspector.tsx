@@ -565,7 +565,7 @@ export const RequestInspector: React.FC<RequestInspectorProps> = ({
 
                   {replayResult.body && (
                     <div className="space-y-1">
-                      <span className="text-2xs uppercase text-neutral-400 block">Response Preview</span>
+                      <span className="text-2xs uppercase text-neutral-400 block">Response Body</span>
                       <CodeBlock code={replayResult.body} language="json" maxHeight="max-h-52" />
                     </div>
                   )}

@@ -28,7 +28,7 @@ export const AboutPage: React.FC = () => {
           What HookLab Does
         </h2>
         <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-          HookLab generates unpredictable public HTTP endpoints capable of receiving and persisting webhooks from any external provider (Stripe, GitHub, Shopify, Slack, Twilio, Paddle, custom APIs). Developers can immediately inspect incoming headers, raw bytes, parsed JSON/XML structures, test error scenarios with mock status codes, and replay requests to local tunnels or staging servers.
+          HookLab generates unpredictable public HTTP endpoints capable of receiving and persisting webhooks from any external provider (Stripe, GitHub, Shopify, Slack, Twilio, Paddle, custom APIs). Developers can immediately inspect incoming headers, raw bytes, parsed JSON/XML structures, test error scenarios with custom status codes, and replay requests to destination endpoints or tunnels.
         </p>
       </section>
 
@@ -43,7 +43,7 @@ export const AboutPage: React.FC = () => {
               No More Print-Debugging
             </h3>
             <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Eliminates the cycle of deploying temporary logging code to staging servers just to understand what headers and payload fields a provider sends.
+              Eliminates the cycle of deploying temporary logging code to remote servers just to understand what headers and payload fields a provider sends.
             </p>
           </div>
 
@@ -52,7 +52,7 @@ export const AboutPage: React.FC = () => {
               Reliable Retry Testing
             </h3>
             <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Allows developers to configure mock 500, 502, or 429 status codes with artificial latency to observe how upstream webhook providers retry failed deliveries.
+              Allows developers to configure simulated 500, 502, or 429 status codes with artificial latency to observe how upstream webhook providers retry failed deliveries.
             </p>
           </div>
 

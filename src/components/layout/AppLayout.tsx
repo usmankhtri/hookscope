@@ -257,10 +257,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 
             <button
               type="button"
-              onClick={async () => {
-                const ep = await onCreateEndpoint();
-                if (ep) {
-                  navigate(`/app/endpoints/${ep.token}`);
+              onClick={() => {
+                if (onRequestCreateEndpoint) {
+                  onRequestCreateEndpoint();
+                } else {
+                  onCreateEndpoint().then(ep => {
+                    if (ep) navigate(`/app/endpoints/${ep.token}`);
+                  });
                 }
               }}
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-neutral-900 dark:bg-neutral-100 dark:text-neutral-900 rounded-lg hover:bg-neutral-800 dark:hover:bg-white transition-colors whitespace-nowrap shadow-2xs cursor-pointer"

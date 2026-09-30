@@ -67,7 +67,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onCreateEndpoint, onRe
         </div>
       </div>
 
-      {/* Visual Product Mockup / Interface Preview Centerpiece */}
+      {/* Product Interface Overview */}
       <div className="border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden bg-white dark:bg-[#121214] shadow-xl">
         {/* Mock Top bar */}
         <div className="px-4 py-2.5 bg-neutral-100/70 dark:bg-[#18181b] border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between text-2xs font-mono text-neutral-500">
@@ -76,7 +76,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onCreateEndpoint, onRe
             <span className="w-2.5 h-2.5 rounded-full bg-neutral-300 dark:bg-neutral-700"></span>
             <span className="w-2.5 h-2.5 rounded-full bg-neutral-300 dark:bg-neutral-700"></span>
             <span className="ml-2 text-neutral-700 dark:text-neutral-300 font-semibold">
-              https://hookscope-tools.vercel.app/h/demo-endpoint
+              https://hookscope-tools.vercel.app/h/wh_live_a9f82c
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
@@ -87,7 +87,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onCreateEndpoint, onRe
 
         {/* Mock 2-panel interface */}
         <div className="grid grid-cols-1 md:grid-cols-12 min-h-[380px] divide-y md:divide-y-0 md:divide-x divide-neutral-200 dark:divide-neutral-800 font-mono text-xs">
-          {/* Left panel: Sample stream */}
+          {/* Left panel: Captured stream */}
           <div className="md:col-span-5 p-3 space-y-1.5 bg-neutral-50/50 dark:bg-[#141416]">
             <div className="text-3xs uppercase tracking-wider text-neutral-400 px-2 py-1">
               Captured Stream
@@ -102,7 +102,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onCreateEndpoint, onRe
                 </span>
               </div>
               <div className="text-neutral-700 dark:text-neutral-300 text-2xs truncate">
-                /h/demo-endpoint/charges
+                /h/wh_live_a9f82c/charges
               </div>
               <div className="text-3xs text-neutral-400">2.4 KB · JSON</div>
             </div>
@@ -115,12 +115,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onCreateEndpoint, onRe
                   200
                 </span>
               </div>
-              <div className="text-2xs truncate">/h/demo-endpoint/push</div>
+              <div className="text-2xs truncate">/h/wh_live_a9f82c/push</div>
               <div className="text-3xs text-neutral-400">4.1 KB · JSON</div>
             </div>
           </div>
 
-          {/* Right panel: Sample inspector */}
+          {/* Right panel: Request inspector */}
           <div className="md:col-span-7 p-4 sm:p-5 space-y-4 bg-white dark:bg-[#121214]">
             <div className="flex items-center gap-3 border-b border-neutral-100 dark:border-neutral-800 pb-2 text-2xs font-semibold">
               <span className="text-neutral-900 dark:text-neutral-100 border-b-2 border-neutral-900 dark:border-neutral-100 pb-2 -mb-2.5">
@@ -133,7 +133,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onCreateEndpoint, onRe
 
             <div className="space-y-2 text-2xs leading-relaxed">
               <div className="p-3 rounded-lg bg-neutral-50 dark:bg-[#161619] border border-neutral-200 dark:border-neutral-800 space-y-1">
-                <div className="text-neutral-400 uppercase text-3xs">Sample Payload Preview</div>
+                <div className="text-neutral-400 uppercase text-3xs">Payload Inspector</div>
                 <pre className="text-neutral-800 dark:text-neutral-200 whitespace-pre overflow-x-auto m-0">
 {`{
   "event": "payment_intent.succeeded",
@@ -185,7 +185,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onCreateEndpoint, onRe
             Replay with SSRF Protection
           </h2>
           <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-            Forward captured webhooks to your local development server or staging environment with built-in protections against localhost and internal subnet proxying.
+            Forward captured webhooks to your destination APIs or target environments with built-in protections against internal subnet proxying.
           </p>
         </div>
 

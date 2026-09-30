@@ -43,7 +43,7 @@ export const PrivacyPage: React.FC = () => {
             </h2>
           </div>
           <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-            HookLab does not include third-party tracking libraries, advertising beacons, or behavioral monitoring SDKs. Your testing sessions remain completely private.
+            HookLab does not include third-party tracking libraries, advertising beacons, or behavioral monitoring SDKs. Your sessions and inspection workflows remain completely private.
           </p>
         </div>
 

@@ -155,7 +155,7 @@ export const CreateEndpointModal: React.FC<CreateEndpointModalProps> = ({
 
             <div className="rounded-lg bg-neutral-50 dark:bg-[#121214] border border-neutral-100 dark:border-neutral-800/80 p-3 text-2xs text-neutral-500 space-y-1">
               <span className="font-semibold text-neutral-700 dark:text-neutral-300 block">
-                Production Endpoint URL:
+                Generated Endpoint URL:
               </span>
               <p className="font-mono text-3xs text-neutral-400 truncate">
                 https://hookscope-tools.vercel.app/h/&lt;unique-token&gt;

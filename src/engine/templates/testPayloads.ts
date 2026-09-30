@@ -12,17 +12,17 @@ export const SIMULATED_PAYLOAD_TEMPLATES: PayloadTemplate[] = [
   {
     id: 'stripe-payment-intent',
     name: 'Stripe – payment_intent.succeeded',
-    provider: 'Stripe (Simulated)',
-    description: 'Simulated payment intent succeeded event with charges and customer metadata.',
+    provider: 'Stripe',
+    description: 'Payment intent succeeded event with charges and customer metadata.',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Stripe-Signature': 't=1695984000,v1=simulated_5a73e61c56f8f78b849e7a9b0c2a8f',
+      'Stripe-Signature': 't=1695984000,v1=5a73e61c56f8f78b849e7a9b0c2a8f',
       'User-Agent': 'Stripe/1.0 (+https://stripe.com/docs/webhooks)',
     },
     body: JSON.stringify(
       {
-        id: 'evt_sim_3Mvw9uLkdIwHu7ix0rW7eX9N',
+        id: 'evt_3Mvw9uLkdIwHu7ix0rW7eX9N',
         object: 'event',
         api_version: '2023-10-16',
         created: 1695984000,
@@ -53,14 +53,14 @@ export const SIMULATED_PAYLOAD_TEMPLATES: PayloadTemplate[] = [
   {
     id: 'github-push',
     name: 'GitHub – push event',
-    provider: 'GitHub (Simulated)',
-    description: 'Simulated git push event containing commits, repository info, and pusher details.',
+    provider: 'GitHub',
+    description: 'Git push event containing commits, repository info, and pusher details.',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-GitHub-Event': 'push',
       'X-GitHub-Delivery': '72h58190-619e-11ee-82bc-9d0df5248232',
-      'X-Hub-Signature-256': 'sha256=simulated_8f0a394ec5642d9f37929d2bf9c81123',
+      'X-Hub-Signature-256': 'sha256=8f0a394ec5642d9f37929d2bf9c81123',
       'User-Agent': 'GitHub-Hookshot/7b8f9e0',
     },
     body: JSON.stringify(
@@ -70,8 +70,8 @@ export const SIMULATED_PAYLOAD_TEMPLATES: PayloadTemplate[] = [
         after: '8b7f805a9c72e2938a9028a38b5efb867e3a',
         repository: {
           id: 1296269,
-          name: 'hooklab-demo',
-          full_name: 'acme/hooklab-demo',
+          name: 'hooklab-app',
+          full_name: 'acme/hooklab-app',
           private: false,
           owner: {
             name: 'octocat',
@@ -103,13 +103,13 @@ export const SIMULATED_PAYLOAD_TEMPLATES: PayloadTemplate[] = [
   {
     id: 'shopify-order-created',
     name: 'Shopify – orders/create',
-    provider: 'Shopify (Simulated)',
-    description: 'Simulated order created event with line items and shipping addresses.',
+    provider: 'Shopify',
+    description: 'Order created event with line items and shipping addresses.',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-Shopify-Topic': 'orders/create',
-      'X-Shopify-Hmac-Sha256': 'simulated_2c7a38e8fb92a0d9b4c81a2e76f920',
+      'X-Shopify-Hmac-Sha256': '2c7a38e8fb92a0d9b4c81a2e76f920==',
       'X-Shopify-Shop-Domain': 'acme-store.myshopify.com',
       'User-Agent': 'Shopify-Partner/1.0',
     },
@@ -141,18 +141,18 @@ export const SIMULATED_PAYLOAD_TEMPLATES: PayloadTemplate[] = [
   {
     id: 'slack-event-callback',
     name: 'Slack – message event',
-    provider: 'Slack (Simulated)',
-    description: 'Simulated event callback payload for a channel message event.',
+    provider: 'Slack',
+    description: 'Event callback payload for a channel message event.',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Slack-Signature': 'v0=simulated_a2114d57b48eac39b9ad189dd83104ec4141e811e5ab50140f20f43d340f45de',
+      'X-Slack-Signature': 'v0=a2114d57b48eac39b9ad189dd83104ec4141e811e5ab50140f20f43d340f45de',
       'X-Slack-Request-Timestamp': '1695984200',
       'User-Agent': 'Slackbot 1.0 (+https://api.slack.com/robots)',
     },
     body: JSON.stringify(
       {
-        token: 'simulated_verification_token',
+        token: 'verification_token_sample',
         team_id: 'T012AB34C5',
         api_app_id: 'A012D34E5F',
         event: {
@@ -173,12 +173,12 @@ export const SIMULATED_PAYLOAD_TEMPLATES: PayloadTemplate[] = [
   {
     id: 'discord-interaction',
     name: 'Discord – webhook interaction',
-    provider: 'Discord (Simulated)',
-    description: 'Simulated Discord bot slash-command interaction ping.',
+    provider: 'Discord',
+    description: 'Discord bot slash-command interaction ping.',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Signature-Ed25519': 'simulated_ed25519_sig_f7823b190a',
+      'X-Signature-Ed25519': 'ed25519_sig_f7823b190a',
       'X-Signature-Timestamp': '1695984300',
       'User-Agent': 'Discord-Bot (https://discord.com, 1.0)',
     },
@@ -197,7 +197,7 @@ export const SIMULATED_PAYLOAD_TEMPLATES: PayloadTemplate[] = [
         member: {
           user: {
             id: '345678901234567890',
-            username: 'dev_lead',
+            username: 'lead_engineer',
             discriminator: '0001',
           },
         },
@@ -209,7 +209,7 @@ export const SIMULATED_PAYLOAD_TEMPLATES: PayloadTemplate[] = [
   {
     id: 'generic-json-webhook',
     name: 'Generic – JSON Webhook Event',
-    provider: 'Generic JSON (Simulated)',
+    provider: 'Generic JSON',
     description: 'Standard JSON event payload with nested entities and ISO timestamp.',
     method: 'POST',
     headers: {
