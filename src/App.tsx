@@ -40,7 +40,7 @@ function AppWorkspaceIndex({
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-3 font-sans">
         <div className="w-5 h-5 border-2 border-neutral-300 border-t-neutral-800 dark:border-neutral-700 dark:border-t-neutral-200 rounded-full animate-spin"></div>
-        <p className="text-xs text-neutral-500 font-mono">Loading HookLab workspace...</p>
+        <p className="text-xs text-neutral-500 font-mono">Loading HookScope workspace...</p>
       </div>
     );
   }

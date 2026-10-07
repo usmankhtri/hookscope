@@ -5,7 +5,7 @@ import { WebhookEndpoint, StorageStatus } from '../../types';
 import { getPublicEndpointUrl } from '../../utils/url';
 import { CopyButton } from '../common/CopyButton';
 import { ConfirmDialog } from '../common/ConfirmDialog';
-import { HookLabLogo } from '../brand/HookLabLogo';
+import { HookScopeLogo } from '../brand/HookScopeLogo';
 import {
   ChevronDown,
   Plus,
@@ -93,7 +93,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           {/* Left: Brand + Contextual Endpoint Switcher */}
           <div className="flex items-center gap-3 min-w-0">
             <Link to="/app" className="focus:outline-hidden">
-              <HookLabLogo />
+              <HookScopeLogo />
             </Link>
 
             <span className="text-neutral-300 dark:text-neutral-700 hidden sm:inline">/</span>
@@ -130,23 +130,34 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                       <span className="text-2xs font-mono uppercase text-neutral-400">
                         Active Endpoints ({uniqueEndpoints.length})
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDropdownOpen(false);
-                          if (onRequestCreateEndpoint) {
-                            onRequestCreateEndpoint();
-                          } else {
-                            onCreateEndpoint().then(ep => {
-                              if (ep) navigate(`/app/endpoints/${ep.token}`);
-                            });
-                          }
-                        }}
-                        className="inline-flex items-center gap-1 text-2xs font-medium text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
-                      >
-                        <Plus className="w-3 h-3" />
-                        <span>Create New</span>
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDropdownOpen(false);
+                            if (onRequestCreateEndpoint) {
+                              onRequestCreateEndpoint();
+                            } else {
+                              onCreateEndpoint().then(ep => {
+                                if (ep) navigate(`/app/endpoints/${ep.token}`);
+                              });
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 text-2xs font-medium text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" />
+                          <span>Create New</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDropdownOpen(false)}
+                          aria-label="Close endpoints menu"
+                          title="Close"
+                          className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 p-0.5 rounded transition-colors"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="max-h-60 overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-800/60 py-1">
@@ -326,6 +337,25 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             >
               Documentation
             </NavLink>
+            <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800/80">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  if (onRequestCreateEndpoint) {
+                    onRequestCreateEndpoint();
+                  } else {
+                    onCreateEndpoint().then(ep => {
+                      if (ep) navigate(`/app/endpoints/${ep.token}`);
+                    });
+                  }
+                }}
+                className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold text-white bg-neutral-900 dark:bg-neutral-100 dark:text-neutral-900 rounded-lg cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create New Endpoint</span>
+              </button>
+            </div>
           </div>
         )}
       </header>
@@ -336,13 +366,19 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       </main>
 
       {/* Application Footer */}
-      <footer className="h-7 px-4 bg-white dark:bg-[#121214] border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between text-3xs text-neutral-500 font-mono shrink-0 select-none">
+      <footer className="h-8 px-4 bg-white dark:bg-[#121214] border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between text-3xs text-neutral-500 font-mono shrink-0 select-none">
         <div className="flex items-center gap-2">
-          <span>HookLab</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>HookScope</span>
           <span>·</span>
-          <span>Webhook Observability Workspace</span>
+          <span>Workspace Operational</span>
+          <span className="hidden sm:inline">·</span>
+          <span className="hidden sm:inline text-neutral-400">SSRF Guard Active</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Link to="/app/tools" className="hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+            Tools
+          </Link>
           <Link to="/security" className="hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
             Security
           </Link>

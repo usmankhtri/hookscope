@@ -21,7 +21,7 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
   const { warning, error: toastError, success } = useToast();
 
   useEffect(() => {
-    document.title = 'Simulated Webhook Templates – HookLab';
+    document.title = 'Simulated Webhook Templates – HookScope';
   }, []);
   const [selectedTemplate, setSelectedTemplate] = useState<PayloadTemplate>(SIMULATED_PAYLOAD_TEMPLATES[0]);
   const [sending, setSending] = useState(false);
@@ -72,10 +72,10 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
           <div>
             <h1 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
               <Layers className="w-4 h-4 text-neutral-500" />
-              Simulated Webhook Templates
+              Webhook Event Templates
             </h1>
             <p className="text-xs text-neutral-500">
-              Representative event payloads for testing webhook ingestion and routing logic.
+              Sample payloads from Stripe, GitHub, Shopify, and Slack to test webhook handling and ingestion.
             </p>
           </div>
         </div>

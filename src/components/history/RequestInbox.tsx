@@ -99,7 +99,7 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({
                 : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
             }`}
           >
-            Stream ({events.length})
+            Requests ({events.length})
           </button>
           <button
             type="button"
@@ -130,7 +130,7 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({
           <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
           <input
             type="text"
-            placeholder="Search stream (/ to focus)..."
+            placeholder="Search requests (press / to focus)..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             className="w-full text-xs pl-8 pr-10 py-1.5 bg-white dark:bg-[#121214] border border-neutral-200 dark:border-neutral-800 rounded-lg text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-hidden focus:ring-1 focus:ring-neutral-400 font-sans"
@@ -190,10 +190,10 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({
               <div className="space-y-3 max-w-xs">
                 <div>
                   <h3 className="text-xs font-semibold text-neutral-900 dark:text-neutral-100">
-                    No requests yet
+                    Waiting for requests
                   </h3>
                   <p className="text-2xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
-                    Send an HTTP request to this endpoint to see it here.
+                    Send an HTTP request to this endpoint URL to inspect it in real time.
                   </p>
                 </div>
 
@@ -206,7 +206,7 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({
                     {publicUrl}
                   </div>
                   <div className="pt-1">
-                    <CopyButton text={publicUrl} label="Copy endpoint" className="w-full justify-center" />
+                    <CopyButton text={publicUrl} label="Copy URL" className="w-full justify-center" />
                   </div>
                 </div>
 
@@ -214,7 +214,7 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({
                   <button
                     type="button"
                     onClick={() => onSetWorkspaceMode('test-sender')}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>Send a test webhook now</span>
@@ -224,10 +224,10 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({
             ) : (
               <div className="space-y-1">
                 <p className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-                  No matching events
+                  No matching requests
                 </p>
                 <p className="text-2xs text-neutral-500">
-                  Try clearing your search query or status filters.
+                  Try clearing your search query or status filter.
                 </p>
               </div>
             )}

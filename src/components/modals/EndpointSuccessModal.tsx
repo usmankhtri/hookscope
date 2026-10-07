@@ -133,7 +133,7 @@ export const EndpointSuccessModal: React.FC<EndpointSuccessModalProps> = ({
             onClick={() => onOpenEndpoint(endpoint.token)}
             className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-neutral-900 dark:bg-neutral-100 dark:text-neutral-900 rounded-lg hover:bg-neutral-800 dark:hover:bg-white transition-colors cursor-pointer"
           >
-            <span>Open endpoint</span>
+            <span>Open Endpoint</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

@@ -96,7 +96,7 @@ export const CreateEndpointModal: React.FC<CreateEndpointModalProps> = ({
                 Create Endpoint
               </h2>
               <p className="text-2xs text-neutral-500">
-                Generate an isolated public webhook ingestion URL
+                Generate a unique public URL to receive and inspect webhooks
               </p>
             </div>
           </div>

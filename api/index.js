@@ -783,11 +783,14 @@ function parseCookies(req) {
   return cookies;
 }
 function getSessionId(req) {
-  const fromHeader = req.headers["x-hooklab-session"];
+  const fromHeader = req.headers["x-hookscope-session"] || req.headers["x-hooklab-session"];
   if (fromHeader && fromHeader.trim().length >= 8) {
     return fromHeader.trim();
   }
   const cookies = parseCookies(req);
+  if (cookies.hs_session && cookies.hs_session.trim().length >= 8) {
+    return cookies.hs_session.trim();
+  }
   if (cookies.hl_session && cookies.hl_session.trim().length >= 8) {
     return cookies.hl_session.trim();
   }
@@ -900,7 +903,7 @@ function createExpressApp() {
       return res.status(500).json({ error: "STORAGE_ERROR", message: err.message });
     }
   });
-  app2.patch("/api/endpoints/:token", async (req, res) => {
+  const handleUpdateEndpoint = async (req, res) => {
     const token = req.params.token;
     if (!isValidEndpointToken(token)) {
       return res.status(400).json({ error: "INVALID_TOKEN", message: "Malformed endpoint identifier" });
@@ -915,7 +918,9 @@ function createExpressApp() {
     } catch (err) {
       return res.status(500).json({ error: "STORAGE_ERROR", message: err.message });
     }
-  });
+  };
+  app2.patch("/api/endpoints/:token", handleUpdateEndpoint);
+  app2.put("/api/endpoints/:token", handleUpdateEndpoint);
   app2.delete("/api/endpoints/:token", async (req, res) => {
     const token = req.params.token;
     if (!isValidEndpointToken(token)) {
@@ -965,7 +970,7 @@ function createExpressApp() {
       return res.status(500).json({ error: "STORAGE_ERROR", message: err.message });
     }
   });
-  app2.post("/api/endpoints/:token/clear", async (req, res) => {
+  const handleClearEvents = async (req, res) => {
     const token = req.params.token;
     try {
       const storage = StorageManager.getAdapter();
@@ -974,7 +979,9 @@ function createExpressApp() {
     } catch (err) {
       return res.status(500).json({ error: "STORAGE_ERROR", message: err.message });
     }
-  });
+  };
+  app2.post("/api/endpoints/:token/clear", handleClearEvents);
+  app2.delete("/api/endpoints/:token/events", handleClearEvents);
   const webhookHandler = async (req, res) => {
     const token = req.params.token;
     const startTime = Date.now();

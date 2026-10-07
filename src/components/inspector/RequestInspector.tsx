@@ -74,7 +74,7 @@ export const RequestInspector: React.FC<RequestInspectorProps> = ({
           No request selected
         </h3>
         <p className="text-xs text-neutral-500 mt-1 max-w-sm">
-          Select an incoming request from the event stream to inspect headers, payload parameters, generated client code, or replay.
+          Select an incoming request from the list on the left to inspect headers, payload data, and generated code.
         </p>
       </div>
     );
@@ -147,9 +147,9 @@ export const RequestInspector: React.FC<RequestInspectorProps> = ({
     { id: 'overview', label: 'Overview' },
     { id: 'headers', label: `Headers (${Object.keys(event.headers).length})` },
     { id: 'query', label: `Query (${Object.keys(event.query).length})` },
-    { id: 'body', label: 'Body' },
+    { id: 'body', label: 'JSON Body' },
     { id: 'raw', label: 'Raw Payload' },
-    { id: 'code', label: 'Code' },
+    { id: 'code', label: 'Code Snippets' },
     { id: 'replay', label: 'Replay' },
   ];
 
@@ -459,7 +459,7 @@ export const RequestInspector: React.FC<RequestInspectorProps> = ({
             <div className="p-3.5 bg-neutral-50 dark:bg-[#141416] border border-neutral-200 dark:border-neutral-800 rounded-xl flex items-start gap-2.5">
               <ShieldCheck className="w-4 h-4 text-neutral-500 shrink-0 mt-0.5" />
               <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                <strong>SSRF Protection Active:</strong> Forward requests safely. Requests targeting loopback (127.0.0.1, localhost), private networks (10.x, 192.168.x, 172.16.x), or cloud metadata are blocked.
+                <strong>SSRF Protection Active:</strong> Forward requests safely. Connections to local addresses (127.0.0.1, localhost), private networks (10.x, 192.168.x, 172.16.x), and cloud metadata are blocked automatically.
               </p>
             </div>
 

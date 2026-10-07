@@ -1,11 +1,9 @@
 User-agent: *
 Allow: /
 Allow: /docs
+Allow: /about
 Allow: /security
 Allow: /privacy
-Allow: /about
-Disallow: /app/
-Disallow: /h/
-Disallow: /api/
+Allow: /app
 
 Sitemap: https://hookscope-tools.vercel.app/sitemap.xml

@@ -3,51 +3,69 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HookLab – Inspect, test, replay, and understand webhooks</title>
-    <meta name="description" content="Inspect, test, replay, and understand webhooks. Create temporary public endpoints, inspect incoming requests, edit payloads, and debug API integrations." />
+    <title>HookScope – Inspect, Test, Replay &amp; Debug Webhooks</title>
+    <meta name="description" content="Capture, inspect, replay, and debug HTTP webhooks in real time. Create instant public endpoints, inspect headers and payloads, simulate events, and verify HMAC signatures." />
+    <meta name="keywords" content="webhook inspector, webhook tester, replay webhooks, stripe webhooks, github webhooks, hmac signature verifier, http payload debugger, api developer tools" />
+    <meta name="author" content="HookScope" />
+    <meta name="theme-color" content="#10b981" />
+    
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
     <link rel="canonical" href="https://hookscope-tools.vercel.app/" />
     
-    <!-- Open Graph / Social -->
+    <!-- Open Graph / Social Sharing -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://hookscope-tools.vercel.app/" />
-    <meta property="og:title" content="HookLab – Webhook Testing and Inspection Tool" />
-    <meta property="og:description" content="Create temporary public endpoints, inspect headers and payloads, edit, replay, and debug webhooks with ease." />
-    <meta property="og:site_name" content="HookLab" />
+    <meta property="og:title" content="HookScope – Inspect, Test, Replay &amp; Debug Webhooks" />
+    <meta property="og:description" content="Capture, inspect, replay, and debug HTTP webhooks in real time. Instant public endpoints, payload diffs, and HMAC verification." />
+    <meta property="og:site_name" content="HookScope" />
+    <meta property="og:locale" content="en_US" />
     
-    <!-- Twitter -->
+    <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://hookscope-tools.vercel.app/" />
-    <meta name="twitter:title" content="HookLab – Webhook Testing and Inspection Tool" />
-    <meta name="twitter:description" content="Inspect, test, replay, and understand webhooks with temporary public endpoints and deep payload inspection." />
+    <meta name="twitter:title" content="HookScope – Inspect, Test, Replay &amp; Debug Webhooks" />
+    <meta name="twitter:description" content="Capture, inspect, replay, and debug HTTP webhooks in real time. Instant public endpoints and payload analysis." />
     
-    <!-- Google Fonts: Poppins & JetBrains Mono -->
+    <!-- Performance & Google Fonts Optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Schema.org Structured Data -->
+    <!-- Schema.org Rich Structured Data -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
-      "name": "HookLab",
+      "name": "HookScope",
       "url": "https://hookscope-tools.vercel.app",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "All",
-      "description": "Inspect, test, replay, and understand webhooks. Receive HTTP webhooks at temporary public endpoints, inspect requests, view headers and payloads, and test API behavior.",
+      "description": "Capture, inspect, replay, and debug HTTP webhooks in real time. Generate instant public endpoints, inspect headers and payloads, test mock responses, and verify HMAC signatures.",
+      "softwareVersion": "1.0.0",
       "offers": {
         "@type": "Offer",
         "price": "0",
         "priceCurrency": "USD"
-      }
+      },
+      "featureList": [
+        "Instant public HTTP endpoint generation",
+        "Real-time webhook ingestion and payload inspection",
+        "Configurable HTTP status codes, latency, and mock responses",
+        "Safe SSRF-guarded webhook replaying to target servers",
+        "Local browser-based HMAC signature verification",
+        "JSON payload structural diffing tool"
+      ]
     }
     </script>
+
+    <!-- Immediate Theme Initialization (prevents flash of wrong theme) -->
     <script>
       (function() {
         try {
-          var saved = localStorage.getItem('hooklab_theme');
+          var saved = localStorage.getItem('hookscope_theme') || localStorage.getItem('hooklab_theme');
           var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
           var theme = saved || (prefersDark ? 'dark' : 'light');
           if (theme === 'dark') {
@@ -66,4 +84,3 @@
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

@@ -70,8 +70,8 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
 
   // Inline Test Sender Form State
   const [testMethod, setTestMethod] = useState<HttpMethod>('POST');
-  const [testHeadersText, setTestHeadersText] = useState('Content-Type: application/json\nX-HookLab-Test: true');
-  const [testBodyText, setTestBodyText] = useState('{\n  "event": "test.ping",\n  "timestamp": "' + new Date().toISOString() + '",\n  "data": {\n    "message": "Live test payload sent from HookLab workspace"\n  }\n}');
+  const [testHeadersText, setTestHeadersText] = useState('Content-Type: application/json\nX-HookScope-Test: true');
+  const [testBodyText, setTestBodyText] = useState('{\n  "event": "test.ping",\n  "timestamp": "' + new Date().toISOString() + '",\n  "data": {\n    "message": "Live test payload sent from HookScope workspace"\n  }\n}');
   const [sendingTest, setSendingTest] = useState(false);
   const [testResult, setTestResult] = useState<{ status: number; durationMs: number; body: string } | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
@@ -85,9 +85,9 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
 
   useEffect(() => {
     if (endpointToken) {
-      document.title = `/h/${endpointToken} – HookLab Workspace`;
+      document.title = `/h/${endpointToken} – HookScope Workspace`;
     } else {
-      document.title = 'HookLab Workspace';
+      document.title = 'HookScope Workspace';
     }
   }, [endpointToken]);
 
@@ -339,11 +339,11 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
               )}
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-2xs text-neutral-500 dark:text-neutral-400 select-all truncate">
+            <div className="flex items-center gap-2 max-w-full">
+              <span className="font-mono text-2xs text-neutral-500 dark:text-neutral-400 select-all truncate max-w-[200px] xs:max-w-xs sm:max-w-sm md:max-w-md">
                 {publicUrl}
               </span>
-              <CopyButton text={publicUrl} label="Copy" iconOnly={false} className="py-0.5 px-2 text-2xs" />
+              <CopyButton text={publicUrl} label="Copy" iconOnly={false} className="py-0.5 px-2 text-2xs shrink-0" />
             </div>
           </div>
         </div>
@@ -431,18 +431,18 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
                 <div>
                   <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
                     <Sliders className="w-4 h-4 text-neutral-500" />
-                    Custom Response Configuration
+                    Custom Response Rules
                   </h2>
                   <p className="text-xs text-neutral-500">
-                    Configure custom HTTP responses and artificial delays for /h/{endpoint.token}.
+                    Configure custom HTTP responses, headers, and artificial delays for /h/{endpoint.token}.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setWorkspaceMode('stream')}
-                  className="px-3 py-1.5 text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white rounded border border-neutral-200 dark:border-neutral-800"
+                  className="px-3 py-1.5 text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white rounded border border-neutral-200 dark:border-neutral-800 cursor-pointer"
                 >
-                  Return to Stream
+                  Back to Requests
                 </button>
               </div>
 
@@ -591,7 +591,7 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
                 <div>
                   <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
                     <Send className="w-4 h-4 text-neutral-500" />
-                    Built-in Webhook Sender
+                    Send Test Webhook
                   </h2>
                   <p className="text-xs text-neutral-500">
                     Dispatch an HTTP request directly to /h/{endpoint.token} to verify ingestion.
@@ -600,9 +600,9 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
                 <button
                   type="button"
                   onClick={() => setWorkspaceMode('stream')}
-                  className="px-3 py-1.5 text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white rounded border border-neutral-200 dark:border-neutral-800"
+                  className="px-3 py-1.5 text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white rounded border border-neutral-200 dark:border-neutral-800 cursor-pointer"
                 >
-                  Return to Stream
+                  Back to Requests
                 </button>
               </div>
 
@@ -718,7 +718,7 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
       <ConfirmDialog
         isOpen={showClearConfirm}
         title="Clear request history?"
-        message="All captured webhook requests stored for this endpoint will be permanently cleared."
+        message="All captured webhook requests stored for this endpoint will be permanently deleted."
         confirmLabel={isClearing ? 'Clearing...' : 'Clear history'}
         cancelLabel="Cancel"
         isDestructive={true}
@@ -729,7 +729,7 @@ export const EndpointWorkspacePage: React.FC<EndpointWorkspacePageProps> = ({
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         title="Delete endpoint?"
-        message="Requests stored for this endpoint will also be removed according to the application's retention/storage behavior."
+        message="This endpoint and all its stored requests will be permanently deleted."
         confirmLabel={isDeletingEndpoint ? 'Deleting...' : 'Delete endpoint'}
         cancelLabel="Cancel"
         isDestructive={true}

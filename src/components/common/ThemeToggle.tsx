@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
 
+const STORAGE_KEY = 'hookscope_theme';
+const LEGACY_STORAGE_KEY = 'hooklab_theme';
+
 export const ThemeToggle: React.FC = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof document !== 'undefined') {
@@ -22,7 +25,7 @@ export const ThemeToggle: React.FC = () => {
 
   useEffect(() => {
     // Initial sync with localStorage / system preference
-    const saved = localStorage.getItem('hooklab_theme') as 'light' | 'dark' | null;
+    const saved = (localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY)) as 'light' | 'dark' | null;
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     const initial = saved || (prefersDark ? 'dark' : 'light');
     setTheme(initial);
@@ -40,15 +43,17 @@ export const ThemeToggle: React.FC = () => {
     };
 
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'hooklab_theme' && (e.newValue === 'light' || e.newValue === 'dark')) {
+      if ((e.key === STORAGE_KEY || e.key === LEGACY_STORAGE_KEY) && (e.newValue === 'light' || e.newValue === 'dark')) {
         setTheme(e.newValue);
         applyTheme(e.newValue);
       }
     };
 
+    window.addEventListener('hookscope:theme-change', handleSync);
     window.addEventListener('hooklab:theme-change', handleSync);
     window.addEventListener('storage', handleStorage);
     return () => {
+      window.removeEventListener('hookscope:theme-change', handleSync);
       window.removeEventListener('hooklab:theme-change', handleSync);
       window.removeEventListener('storage', handleStorage);
     };
@@ -57,8 +62,10 @@ export const ThemeToggle: React.FC = () => {
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
-    localStorage.setItem('hooklab_theme', next);
+    localStorage.setItem(STORAGE_KEY, next);
+    localStorage.setItem(LEGACY_STORAGE_KEY, next);
     applyTheme(next);
+    window.dispatchEvent(new CustomEvent('hookscope:theme-change', { detail: next }));
     window.dispatchEvent(new CustomEvent('hooklab:theme-change', { detail: next }));
   };
 

@@ -14,11 +14,12 @@ export interface SystemStatusResponse {
 
 function getClientSessionId(): string {
   if (typeof window === 'undefined') return '';
-  const KEY = 'hooklab_session_id';
+  const PRIMARY_KEY = 'hookscope_session_id';
+  const LEGACY_KEY = 'hooklab_session_id';
   try {
-    let id = localStorage.getItem(KEY);
+    let id = localStorage.getItem(PRIMARY_KEY) || localStorage.getItem(LEGACY_KEY);
     if (!id) {
-      const match = document.cookie.match(/(?:^|; )hl_session=([^;]*)/);
+      const match = document.cookie.match(/(?:^|; )(?:hs_session|hl_session)=([^;]*)/);
       if (match && match[1]) {
         id = decodeURIComponent(match[1]);
       }
@@ -31,9 +32,12 @@ function getClientSessionId(): string {
 
 function setClientSessionId(sessionId: string): void {
   if (typeof window === 'undefined') return;
-  const KEY = 'hooklab_session_id';
+  const PRIMARY_KEY = 'hookscope_session_id';
+  const LEGACY_KEY = 'hooklab_session_id';
   try {
-    localStorage.setItem(KEY, sessionId);
+    localStorage.setItem(PRIMARY_KEY, sessionId);
+    localStorage.setItem(LEGACY_KEY, sessionId);
+    document.cookie = `hs_session=${encodeURIComponent(sessionId)}; Path=/; Max-Age=2592000; SameSite=Lax`;
     document.cookie = `hl_session=${encodeURIComponent(sessionId)}; Path=/; Max-Age=2592000; SameSite=Lax`;
   } catch {
     // Ignore if cookies/localStorage are restricted
@@ -44,6 +48,7 @@ function getRequestHeaders(customHeaders: Record<string, string> = {}): Record<s
   const headers: Record<string, string> = { ...customHeaders };
   const session = getClientSessionId();
   if (session) {
+    headers['x-hookscope-session'] = session;
     headers['x-hooklab-session'] = session;
   }
   return headers;

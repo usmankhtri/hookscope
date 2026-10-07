@@ -13,7 +13,7 @@ export const SignaturePage: React.FC<SignaturePageProps> = ({
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = 'HMAC Signature Verifier – HookLab';
+    document.title = 'HMAC Signature Verifier – HookScope';
   }, []);
   const [secret, setSecret] = useState('');
   const [payload, setPayload] = useState(initialPayload);
@@ -82,10 +82,10 @@ export const SignaturePage: React.FC<SignaturePageProps> = ({
           <div>
             <h1 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
               <KeyRound className="w-4 h-4 text-neutral-500" />
-              Webhook Signature & HMAC Verifier
+              Webhook Signature Verifier
             </h1>
             <p className="text-xs text-neutral-500">
-              Deterministic, client-side signature computation. Secrets are never transmitted.
+              Verify webhook signatures securely in your browser. Secret keys are never sent over the network.
             </p>
           </div>
         </div>
@@ -127,7 +127,7 @@ export const SignaturePage: React.FC<SignaturePageProps> = ({
               In-Browser Cryptographic Verification
             </p>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              All HMAC operations run using Web Crypto directly inside your browser. Secret keys are never sent to HookLab servers or any third-party APIs. Note that providers vary in timestamp prepend formats (e.g. Stripe prepends <code className="font-mono text-2xs">timestamp.payload</code>).
+              All HMAC operations run using Web Crypto directly inside your browser. Secret keys are never sent to HookScope servers or any third-party APIs. Note that providers vary in timestamp prepend formats (e.g. Stripe prepends <code className="font-mono text-2xs">timestamp.payload</code>).
             </p>
           </div>
         </div>

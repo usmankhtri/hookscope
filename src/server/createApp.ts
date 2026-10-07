@@ -25,11 +25,14 @@ function parseCookies(req: Request): Record<string, string> {
 }
 
 function getSessionId(req: Request): string | undefined {
-  const fromHeader = req.headers['x-hooklab-session'] as string | undefined;
+  const fromHeader = (req.headers['x-hookscope-session'] || req.headers['x-hooklab-session']) as string | undefined;
   if (fromHeader && fromHeader.trim().length >= 8) {
     return fromHeader.trim();
   }
   const cookies = parseCookies(req);
+  if (cookies.hs_session && cookies.hs_session.trim().length >= 8) {
+    return cookies.hs_session.trim();
+  }
   if (cookies.hl_session && cookies.hl_session.trim().length >= 8) {
     return cookies.hl_session.trim();
   }
@@ -170,7 +173,7 @@ export function createExpressApp(): express.Application {
     }
   });
 
-  app.patch('/api/endpoints/:token', async (req: Request, res: Response) => {
+  const handleUpdateEndpoint = async (req: Request, res: Response) => {
     const token = req.params.token;
     if (!isValidEndpointToken(token)) {
       return res.status(400).json({ error: 'INVALID_TOKEN', message: 'Malformed endpoint identifier' });
@@ -186,7 +189,10 @@ export function createExpressApp(): express.Application {
     } catch (err: any) {
       return res.status(500).json({ error: 'STORAGE_ERROR', message: err.message });
     }
-  });
+  };
+
+  app.patch('/api/endpoints/:token', handleUpdateEndpoint);
+  app.put('/api/endpoints/:token', handleUpdateEndpoint);
 
   app.delete('/api/endpoints/:token', async (req: Request, res: Response) => {
     const token = req.params.token;
@@ -244,7 +250,7 @@ export function createExpressApp(): express.Application {
     }
   });
 
-  app.post('/api/endpoints/:token/clear', async (req: Request, res: Response) => {
+  const handleClearEvents = async (req: Request, res: Response) => {
     const token = req.params.token;
     try {
       const storage = StorageManager.getAdapter();
@@ -253,7 +259,10 @@ export function createExpressApp(): express.Application {
     } catch (err: any) {
       return res.status(500).json({ error: 'STORAGE_ERROR', message: err.message });
     }
-  });
+  };
+
+  app.post('/api/endpoints/:token/clear', handleClearEvents);
+  app.delete('/api/endpoints/:token/events', handleClearEvents);
 
   // Webhook Ingestion Handler (for /h/:token and /api/h/:token)
   const webhookHandler = async (req: Request, res: Response) => {

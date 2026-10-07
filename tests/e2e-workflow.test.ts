@@ -5,7 +5,7 @@ import { createExpressApp } from '../src/server/createApp';
 import { StorageManager } from '../src/engine/storage/storageManager';
 import { MemoryStorageAdapter } from '../src/engine/storage/memoryAdapter';
 
-describe('HookLab Full E2E Webhook Pipeline & Security Suite', () => {
+describe('HookScope Full E2E Webhook Pipeline & Security Suite', () => {
   let server: http.Server;
   let baseUrl: string;
 

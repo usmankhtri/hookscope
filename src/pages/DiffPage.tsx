@@ -17,7 +17,7 @@ export const DiffPage: React.FC<DiffPageProps> = ({
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = 'Payload Comparison & Diff – HookLab';
+    document.title = 'Payload Comparison & Diff – HookScope';
   }, []);
   const [selectedEventIdA, setSelectedEventIdA] = useState<string>(initialEvent?.id || '');
   const [selectedEventIdB, setSelectedEventIdB] = useState<string>('');
@@ -82,10 +82,10 @@ export const DiffPage: React.FC<DiffPageProps> = ({
           <div>
             <h1 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
               <GitCompare className="w-4 h-4 text-neutral-500" />
-              Payload Comparison & Diff
+              Payload Comparison &amp; Diff
             </h1>
             <p className="text-xs text-neutral-500">
-              Inspect attribute-level differences between two webhook payloads.
+              Compare two JSON payloads side by side to detect structural changes.
             </p>
           </div>
         </div>
